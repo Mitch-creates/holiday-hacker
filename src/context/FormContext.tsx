@@ -2,44 +2,68 @@ import { createContext, useContext, useReducer } from "react";
 
 const FormContext = createContext();
 
-const initialState: State = {
-  userHolidays: 0,
-  selectedTypeOfHoliday: "",
+const initialState: FormState = {
+  userHolidays: "",
+  strategy: "",
+  holidays: [],
+  companyDaysOff: [],
   error: "",
 };
 
-type Action = { type: "formContent/updated"; payload: State };
-
-interface State {
-  userHolidays: number;
-  selectedTypeOfHoliday: string;
+interface FormState {
+  userHolidays: string;
+  strategy: string;
+  holidays: object[];
+  companyDaysOff: object[];
   error: string;
 }
+// TODO Check if this whole things works as expected when. I want to set the fields of the form before we actually submit to make changing styles easier.
+type SetFieldActions = {
+  [K in keyof FormState]: {
+    type: "SET_FIELD";
+    field: K;
+    value: FormState[K];
+  };
+}[keyof FormState];
 
-function reducer(state: State, action: Action) {
+export type FormAction = SetFieldActions | { type: "RESET" };
+
+function reducer(state: FormState, action: FormAction) {
   switch (action.type) {
-    case "formContent/updated":
+    case "SET_FIELD":
+      console.log(action);
       return {
         ...state,
-        userHolidays: action.payload.userHolidays,
+        [action.field]: action.value,
       };
+
     default:
       throw new Error("Unknown action type");
   }
 }
 
 function FormProvider({ children }) {
-  const [{ userHolidays, selectedTypeOfHoliday }, dispatch] = useReducer(
+  const [{ userHolidays, strategy }, dispatch] = useReducer(
     reducer,
     initialState
   );
 
-  function updateFormContent(newFormContent: State) {
-    dispatch({ type: "formContent/updated", payload: newFormContent });
+  function updateUserHolidays(userHolidays: string) {
+    dispatch({ type: "SET_FIELD", field: "userHolidays", value: userHolidays });
+  }
+  function updateStrategy(strategy: string) {
+    dispatch({ type: "SET_FIELD", field: "strategy", value: strategy });
   }
 
   return (
-    <FormContext.Provider value={{ updateFormContent }}>
+    <FormContext.Provider
+      value={{
+        updateUserHolidays: updateUserHolidays,
+        userHolidays: userHolidays,
+        updateStrategy: updateStrategy,
+        strategy: strategy,
+      }}
+    >
       {" "}
       {children}{" "}
     </FormContext.Provider>

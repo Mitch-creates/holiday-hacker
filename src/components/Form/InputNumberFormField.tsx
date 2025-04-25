@@ -30,7 +30,9 @@ export default function InputNumberFormField({
       name={formFieldName}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="font-medium">{label}</FormLabel>
+          <FormLabel className="font-bold text-muted-foreground">
+            {label}
+          </FormLabel>
           <FormControl>
             <Input
               className={`w-45 focus:outline-none focus-visible:!border-${themeColor} focus:!ring-${themeColor}  border-${themeColor}`}
