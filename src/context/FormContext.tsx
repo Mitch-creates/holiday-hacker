@@ -1,23 +1,32 @@
 import { createContext, useContext, useReducer } from "react";
 
-const FormContext = createContext();
+interface FormContextType {
+  state: FormState;
+  updateUserHolidays: (userHolidays: string) => void;
+  updateStrategy: (strategy: string) => void;
+  deleteHoliday: (date: string) => void;
+  resetHolidays: () => void;
+}
 
-const initialState: FormState = {
-  userHolidays: "",
-  strategy: "",
-  holidays: [],
-  companyDaysOff: [],
-  error: "",
-};
+const FormContext = createContext<FormContextType | undefined>(undefined);
 
 interface FormState {
   userHolidays: string;
   strategy: string;
   holidays: object[];
   companyDaysOff: object[];
+  deletedHolidayDates: string[]; //Storing the deleted holidays instead of the full holidays list. Keeps server‐state vs. client‐state separate. React Query manages fetching/caching; The Context manages only the bits of UI state that React Query doesn’t know about
   error: string;
 }
-// TODO Check if this whole things works as expected when. I want to set the fields of the form before we actually submit to make changing styles easier.
+
+const initialState: FormState = {
+  userHolidays: "",
+  strategy: "",
+  holidays: [],
+  companyDaysOff: [],
+  deletedHolidayDates: [],
+  error: "",
+};
 type SetFieldActions = {
   [K in keyof FormState]: {
     type: "SET_FIELD";
@@ -25,8 +34,14 @@ type SetFieldActions = {
     value: FormState[K];
   };
 }[keyof FormState];
+type DeleteHolidayAction = { type: "DELETE_HOLIDAY"; date: string };
+type ResetHolidaysAction = { type: "RESET_HOLIDAYS" };
 
-export type FormAction = SetFieldActions | { type: "RESET" };
+export type FormAction =
+  | SetFieldActions
+  | DeleteHolidayAction
+  | ResetHolidaysAction
+  | { type: "RESET" };
 
 function reducer(state: FormState, action: FormAction) {
   switch (action.type) {
@@ -36,17 +51,27 @@ function reducer(state: FormState, action: FormAction) {
         ...state,
         [action.field]: action.value,
       };
+    case "DELETE_HOLIDAY":
+      return {
+        ...state,
+        deletedHolidayDates: Array.from(
+          new Set([...state.deletedHolidayDates, action.date])
+        ),
+      };
+
+    case "RESET_HOLIDAYS":
+      return {
+        ...state,
+        deletedHolidayDates: [],
+      };
 
     default:
       throw new Error("Unknown action type");
   }
 }
 
-function FormProvider({ children }) {
-  const [{ userHolidays, strategy }, dispatch] = useReducer(
-    reducer,
-    initialState
-  );
+export function FormProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   function updateUserHolidays(userHolidays: string) {
     dispatch({ type: "SET_FIELD", field: "userHolidays", value: userHolidays });
@@ -54,27 +79,32 @@ function FormProvider({ children }) {
   function updateStrategy(strategy: string) {
     dispatch({ type: "SET_FIELD", field: "strategy", value: strategy });
   }
+  function deleteHoliday(date: string) {
+    dispatch({ type: "DELETE_HOLIDAY", date });
+  }
+
+  function resetHolidays() {
+    dispatch({ type: "RESET_HOLIDAYS" });
+  }
 
   return (
     <FormContext.Provider
       value={{
+        state,
         updateUserHolidays: updateUserHolidays,
-        userHolidays: userHolidays,
         updateStrategy: updateStrategy,
-        strategy: strategy,
+        deleteHoliday: deleteHoliday,
+        resetHolidays: resetHolidays,
       }}
     >
-      {" "}
-      {children}{" "}
+      {children}
     </FormContext.Provider>
   );
 }
 
-function useHolidayForm() {
+export function useHolidayForm() {
   const context = useContext(FormContext);
   if (context === undefined)
     throw new Error("FormContext was used outside the Form Provider");
   return context;
 }
-
-export { FormProvider, useHolidayForm };
