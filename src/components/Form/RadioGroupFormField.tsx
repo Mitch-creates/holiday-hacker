@@ -1,12 +1,6 @@
 import { RadioGroup } from "../ui/radio-group";
 import { RadioGroupItem } from "../ui/radio-group";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { HolidayFormValues } from "./HolidayForm";
 import { Control } from "react-hook-form";
 import { useHolidayForm } from "@/context/FormContext";
@@ -14,7 +8,6 @@ import { useHolidayForm } from "@/context/FormContext";
 interface RadioGroupFormFieldProps {
   control: Control<HolidayFormValues>;
   formFieldName: "selectedTypeOfHoliday";
-  label: string;
   themeColor: string;
   options: {
     value: string;
@@ -26,21 +19,18 @@ interface RadioGroupFormFieldProps {
 
 export function RadioGroupFormField({
   control,
-  label,
   options,
   formFieldName,
   themeColor,
 }: RadioGroupFormFieldProps) {
-  const { updateStrategy, strategy } = useHolidayForm();
+  const { updateStrategy, state } = useHolidayForm();
+  const strategy = state.strategy;
   return (
     <FormField
       control={control}
       name={formFieldName}
       render={({ field }) => (
         <FormItem className="space-y-3">
-          <FormLabel className="font-bold text-muted-foreground">
-            {label}
-          </FormLabel>
           <FormControl>
             <RadioGroup
               onValueChange={(val) => {

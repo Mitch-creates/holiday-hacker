@@ -6,6 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import { Label } from "@radix-ui/react-label";
 
 interface StepBoxProps {
   stepIcon?: ReactNode;
@@ -21,6 +22,7 @@ export function FormStepBox({
   stepIcon,
   title,
   tooltip,
+  label,
   children,
   themeColor1,
   themeColor2,
@@ -32,6 +34,7 @@ export function FormStepBox({
           {stepIcon && <div>{stepIcon}</div>}
           <div className={`text-lg text-${themeColor2}`}>{title}</div>
         </div>
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -43,6 +46,7 @@ export function FormStepBox({
           </Tooltip>
         </TooltipProvider>
       </div>
+      <div className="text-sm font-bold text-muted-foreground ">{label}</div>
       <div>{children}</div>
     </div>
   );

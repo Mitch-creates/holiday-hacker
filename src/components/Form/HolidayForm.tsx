@@ -121,7 +121,6 @@ export function HolidayForm() {
           <InputNumberFormField
             control={form.control}
             formFieldName="userHolidays"
-            label="How many paid days off do you have?"
             placeholder="e.g. 20"
             themeColor="theme-1"
           />
@@ -139,11 +138,20 @@ export function HolidayForm() {
           <RadioGroupFormField
             control={form.control}
             formFieldName="selectedTypeOfHoliday"
-            label="What type of holidays do you prefer?"
             options={radioOptions}
             themeColor="theme-4"
           />
         </FormStepBox>
+        <FormStepBox
+          stepIcon={
+            <StepNumberIcon color="theme-5" textColor="theme-6" number={3} />
+          }
+          title="Public Holidays"
+          label="Select your country to see your public holidays."
+          tooltip="Make sure that you're not accounting for these holidays in the first section, keep them seperate."
+          themeColor1="theme-5"
+          themeColor2="theme-6"
+        ></FormStepBox>
         <Button type="submit">Submit</Button>
       </form>
     </Form>
