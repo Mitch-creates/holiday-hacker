@@ -3,7 +3,7 @@ import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import { Control } from "react-hook-form";
 import { HolidayFormValues } from "./HolidayForm";
-import SelectFormField from "./ComboBoxFormField";
+import SelectFormField from "./SelectFormField";
 import { useMemo } from "react";
 import { allCountries } from "country-region-data";
 
@@ -79,8 +79,6 @@ export default function RegionSelect({
       formFieldName="selectedRegion"
       options={regionOptions}
       placeholder="Select a region (optional)"
-      defaultLabel="Nation-wide holidays"
-      selectLabel="Select a region"
       themeColor1={themeColor1}
       themeColor2={themeColor2}
     />

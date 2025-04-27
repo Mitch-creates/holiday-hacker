@@ -1,7 +1,7 @@
 import { Control } from "react-hook-form";
 import { useCountries } from "../../hooks/useCountries";
 import { HolidayFormValues } from "./HolidayForm";
-import SelectFormField from "./ComboBoxFormField";
+import SelectFormField from "./SelectFormField";
 import { useMemo } from "react";
 
 export default function CountrySelect({
