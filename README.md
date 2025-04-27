@@ -7,7 +7,7 @@ This project will be a learning process to improve my skills with React and some
 - Github actions for testing
 - Tailwind CSS
 - Vite
-- Working with dates
+- Github Co Pilot
 - Making more use of shortcuts, snippets and extensions with:
   - ESLint
   - Inline fold
@@ -15,6 +15,6 @@ This project will be a learning process to improve my skills with React and some
   - indent rainbow
   - Prettier
   - Pretty typescript errors
-  - SImple react snippets
+  - Simple react snippets
   - Tailwind CSS Intellisense
   - Template String converter
