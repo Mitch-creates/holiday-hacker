@@ -7,6 +7,47 @@ export interface Country {
   name: string;
 }
 
+/**
+ * Fetches the list of available countries from the API.
+ * @returns Array of countries with code and name.
+ */
+export async function getCountries(): Promise<Country[]> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/AvailableCountries`);
+  } catch (networkError) {
+    console.error("Network error fetching countries:", networkError);
+    throw new Error(
+      "Network error fetching countries. Please check your connection."
+    );
+  }
+
+  if (!response.ok) {
+    let errorDetails = `${response.status} ${response.statusText}`;
+    try {
+      const errorBody = await response.json();
+      if (errorBody && errorBody.message) {
+        // Adjust 'message' if needed
+        errorDetails = errorBody.message;
+      } else {
+        errorDetails = JSON.stringify(errorBody);
+      }
+    } catch (parseError) {
+      console.warn("Could not parse error response body:", parseError);
+    }
+    throw new Error(`Failed to fetch countries: ${errorDetails}`);
+  }
+
+  try {
+    return await response.json();
+  } catch (jsonError) {
+    console.error("Error parsing country data:", jsonError);
+    throw new Error(
+      "Failed to parse country data. The API returned an invalid format."
+    );
+  }
+}
+
 export interface Holiday {
   date: string; // YYYY-MM-DD
   localName: string; // Local name of the holiday
@@ -20,20 +61,6 @@ export interface Holiday {
 }
 
 /**
- * Fetches the list of available countries from the API.
- * @returns Array of countries with code and name.
- */
-export async function getCountries(): Promise<Country[]> {
-  const response = await fetch(`${API_BASE}/AvailableCountries`);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch countries: ${response.status} ${response.statusText}`
-    );
-  }
-  return response.json();
-}
-
-/**
  * Fetches public holidays for a given country and year.
  * @param countryCode ISO 3166-1 alpha-2 country code (e.g., "US").
  * @param year Four-digit year (e.g., 2025).
@@ -43,13 +70,45 @@ export async function getHolidays(
   countryCode: string,
   year: number
 ): Promise<Holiday[]> {
-  const response = await fetch(
-    `${API_BASE}/PublicHolidays/${year}/${countryCode}`
-  );
-  if (!response.ok) {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/PublicHolidays/${year}/${countryCode}`);
+  } catch (networkError) {
+    // Handle fetch failures (network issues, DNS errors, etc.)
+    console.error("Network error fetching holidays:", networkError);
     throw new Error(
-      `Failed to fetch holidays for ${countryCode} in ${year}: ${response.status} ${response.statusText}`
+      `Network error fetching holidays for ${countryCode} in ${year}. Please check your connection.`
     );
   }
-  return response.json();
+
+  if (!response.ok) {
+    let errorDetails = `${response.status} ${response.statusText}`;
+    try {
+      // Attempt to get more specific error details from the response body
+      const errorBody = await response.json();
+      if (errorBody && errorBody.message) {
+        // Adjust 'message' based on actual API error structure
+        errorDetails = errorBody.message;
+      } else {
+        // Or stringify the whole body if no specific message field
+        errorDetails = JSON.stringify(errorBody);
+      }
+    } catch (parseError) {
+      // Ignore if the error response body isn't valid JSON
+      console.warn("Could not parse error response body:", parseError);
+    }
+    throw new Error(
+      `Failed to fetch holidays for ${countryCode} in ${year}: ${errorDetails}`
+    );
+  }
+
+  try {
+    // Handle potential JSON parsing errors on successful responses
+    return await response.json();
+  } catch (jsonError) {
+    console.error("Error parsing holiday data:", jsonError);
+    throw new Error(
+      `Failed to parse holiday data for ${countryCode} in ${year}. The API returned an invalid format.`
+    );
+  }
 }

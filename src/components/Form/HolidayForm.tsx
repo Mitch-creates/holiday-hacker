@@ -15,6 +15,9 @@ import {
   CalendarRange,
   TreePalm,
 } from "lucide-react";
+import CountrySelect from "./CountrySelect";
+import RegionSelect from "./RegionSelect";
+import { useHolidays } from "@/hooks/useHolidays";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -33,6 +36,8 @@ const formSchema = z.object({
       errorMap: () => ({ message: "Please select a type of holiday" }),
     }
   ),
+  selectedCountry: z.string().nonempty("Please select a country"),
+  selectedRegion: z.string().optional(),
 });
 
 const StepNumberIcon = ({
@@ -93,15 +98,28 @@ export function HolidayForm() {
     defaultValues: {
       userHolidays: 0,
       selectedTypeOfHoliday: "longWeekend",
+      selectedCountry: "",
+      selectedRegion: "",
     },
   });
+  const selectedCountry = form.watch("selectedCountry");
+
+  const {
+    data: holidays = [],
+    isLoading: loadingHolidays,
+    isError: errorHolidays,
+  } = useHolidays(
+    selectedCountry,
+    new Date().getFullYear(),
+    Boolean(selectedCountry)
+  );
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const newFormContent = {
-      userHolidays: values.userHolidays,
-      selectedTypeOfHoliday: values.selectedTypeOfHoliday,
-    };
-    updateFormContent(newFormContent);
+    // const newFormContent = {
+    //   userHolidays: values.userHolidays,
+    //   selectedTypeOfHoliday: values.selectedTypeOfHoliday,
+    // };
+    // updateFormContent(newFormContent);
     console.log(values);
   }
 
@@ -112,7 +130,7 @@ export function HolidayForm() {
           stepIcon={
             <StepNumberIcon color="theme-1" textColor="theme-2" number={1} />
           }
-          title="Number of holidays"
+          title="Enter Your Number Of Holidays"
           label="How many paid days off do you have?"
           tooltip="Include only official holidays, not sick days or unpaid leave."
           themeColor1="theme-1"
@@ -129,7 +147,7 @@ export function HolidayForm() {
           stepIcon={
             <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />
           }
-          title="Type of holidays"
+          title="Choose Type Of Holidays"
           label="What type of holidays do you prefer?"
           tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
           themeColor1="theme-3"
@@ -146,12 +164,17 @@ export function HolidayForm() {
           stepIcon={
             <StepNumberIcon color="theme-5" textColor="theme-6" number={3} />
           }
-          title="Public Holidays"
-          label="Select your country to see your public holidays."
+          title="Get Public Holidays"
+          label="Get the public holidays for 2025 by selecting your country, state, and region."
           tooltip="Make sure that you're not accounting for these holidays in the first section, keep them seperate."
           themeColor1="theme-5"
           themeColor2="theme-6"
-        ></FormStepBox>
+        >
+          <CountrySelect control={form.control} />
+          {holidays && (
+            <RegionSelect control={form.control} holidays={holidays} />
+          )}
+        </FormStepBox>
         <Button type="submit">Submit</Button>
       </form>
     </Form>
