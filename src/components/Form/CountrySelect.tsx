@@ -11,12 +11,15 @@ export default function CountrySelect({
 }: {
   control: Control<HolidayFormValues>;
 }) {
+  // Retrieve the list of countries from the custom hook and sort them alphabetically
   const { data: countries = [] } = useCountries();
   const options = useMemo(() => {
-    return countries.map((c) => ({
-      value: c.countryCode,
-      label: c.name,
-    }));
+    return countries
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((c) => ({
+        value: c.countryCode,
+        label: c.name,
+      }));
   }, [countries]);
 
   return (
@@ -25,7 +28,7 @@ export default function CountrySelect({
       formFieldName="selectedCountry"
       options={options}
       placeholder="Select a country"
-      selectLabel="Select a country"
+      selectLabel="Select Country"
       themeColor1={themeColor1}
       themeColor2={themeColor2}
     />

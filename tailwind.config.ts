@@ -26,6 +26,13 @@ module.exports = {
     "bg-theme-5/20",
     "bg-theme-6/20",
     "bg-theme-7/20",
+    "bg-theme-1/50",
+    "bg-theme-2/50",
+    "bg-theme-3/50",
+    "bg-theme-4/50",
+    "bg-theme-5/50",
+    "bg-theme-6/50",
+    "bg-theme-7/50",
 
     // text colors
     "text-theme-1",

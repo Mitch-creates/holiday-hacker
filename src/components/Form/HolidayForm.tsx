@@ -14,6 +14,7 @@ import {
   CalendarClock,
   CalendarRange,
   TreePalm,
+  RefreshCcw,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
@@ -170,11 +171,50 @@ export function HolidayForm() {
           themeColor1="theme-5"
           themeColor2="theme-6"
         >
-          <CountrySelect control={form.control} />
-          {holidays && (
-            <RegionSelect control={form.control} holidays={holidays} />
-          )}
+          <div className="space-y-3">
+            <CountrySelect control={form.control} />
+            {holidays && (
+              <RegionSelect control={form.control} holidays={holidays} />
+            )}
+          </div>
+          <div>
+            <div className="grid gap-4">
+              <div className="flex">
+                <label>Automatically Detected Holidays</label>
+                <Button
+                  variant="link"
+                  onClick={(e) => {
+                    e.preventDefault();
+                  }}
+                >
+                  <RefreshCcw className="w-3 h-3 text-muted-foreground" />{" "}
+                  Refresh
+                </Button>
+                <span>{holidays.length} holidays found</span>
+              </div>
+              <p className="text-muted-foreground">
+                These holidays are automatically detected based on your country
+                and State/Region selection.
+              </p>
+              <ul className="flex gap-4 ">
+                {holidays.map((holiday) => (
+                  <li
+                    key={holiday.name}
+                    className="flex items-center justify-between rounded-md border p-4"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="text-sm font-medium">{holiday.name}</div>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {holiday.date}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </FormStepBox>
+
         <Button type="submit">Submit</Button>
       </form>
     </Form>

@@ -1,8 +1,13 @@
-import React from "react";
 import { Control } from "react-hook-form";
 import { HolidayFormValues } from "./HolidayForm";
 import { useMemo } from "react";
-import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 
 interface SelectFormFieldProps {
   control: Control<HolidayFormValues>;
@@ -12,16 +17,18 @@ interface SelectFormFieldProps {
   widthClassName?: string;
   themeColor1?: string;
   themeColor2?: string;
+  selectLabel?: string;
 }
 
 export default function SelectFormField({
   control,
   formFieldName,
   options,
-  placeholder = "Select…",
+  placeholder,
+  selectLabel,
   widthClassName = "w-full",
-  themeColor1 = "theme-1",
-  themeColor2 = "theme-2",
+  themeColor1 = "theme-5",
+  themeColor2 = "theme-6",
 }: SelectFormFieldProps) {
   const allOptions = useMemo(() => {
     return options.map((o) => ({ value: o.value, label: o.label }));
@@ -31,26 +38,30 @@ export default function SelectFormField({
       control={control}
       name={formFieldName}
       render={({ field }) => (
-        <FormItem className="space-y-1">
+        <FormItem>
+          <FormLabel className="text-sm font-medium text-muted-foreground ">
+            {selectLabel}
+          </FormLabel>
           <FormControl>
             <div className="relative w-full">
               <select
                 {...field}
                 className={`
                 appearance-none w-full h-9 px-3 py-1.5
-                rounded-md transition-all duration-200
-                bg-amber-50/50 dark:bg-amber-900/20
-                border border-amber-200 dark:border-amber-800
-                text-amber-900 dark:text-amber-100 text-sm font-medium
-                hover:bg-amber-100 dark:hover:bg-amber-800/40
-                hover:border-amber-300 dark:hover:border-amber-700
-                focus:ring-1 focus:ring-amber-400 dark:focus:ring-amber-300
-                focus:ring-offset-1 focus:outline-none
+                rounded-md 
+                border border-${themeColor2}
+                text-${themeColor2} text-sm font-medium
+                hover:bg-${themeColor1}/70
+                hover:border-${themeColor1}
+                focus:ring-1 focus:ring-${themeColor2}
+                focus:outline-none
               `}
               >
-                <option value="" disabled>
-                  {placeholder}
-                </option>
+                {placeholder && (
+                  <option value="" disabled>
+                    {placeholder}
+                  </option>
+                )}
                 {allOptions.map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.label}
@@ -59,7 +70,7 @@ export default function SelectFormField({
               </select>
               {/* custom ChevronDown icon */}
               <svg
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-500 dark:text-amber-300"
+                className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-${themeColor1}`}
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >

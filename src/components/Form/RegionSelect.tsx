@@ -68,17 +68,28 @@ export default function RegionSelect({
     }));
 
     // 3) Sort by label
-    return subdivisonArray.sort((a, b) => a.label.localeCompare(b.label));
+
+    const sortedSubdivisonArray = subdivisonArray.sort((a, b) =>
+      a.label.localeCompare(b.label)
+    );
+    // Move the default option to the front of the array
+    const defaultOption = {
+      value: "default",
+      label: "All-states (Nationwide holidays only)",
+    };
+    sortedSubdivisonArray.unshift(defaultOption);
+    return sortedSubdivisonArray;
   }, [holidays]);
 
-  // If no region‐specific holidays exist, don’t render
-  if (regionOptions.length === 0) return null;
+  // If no region‐specific holidays exist or only the default option is present, return null
+  if (regionOptions.length <= 1 && regionOptions[0].value === "default")
+    return null;
   return (
     <SelectFormField
       control={control}
       formFieldName="selectedRegion"
+      selectLabel="Select Province/State"
       options={regionOptions}
-      placeholder="Select a region (optional)"
       themeColor1={themeColor1}
       themeColor2={themeColor2}
     />
