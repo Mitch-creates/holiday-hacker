@@ -14,3 +14,18 @@ export function formatDate(date: Date) {
   };
   return date.toLocaleDateString("en-US", options);
 }
+
+interface Option {
+  value: string;
+  label: string;
+}
+
+export function mapToOptions(dict: Record<string, string>): Option[] {
+  if (!dict) {
+    return [];
+  }
+  return Object.entries(dict).map(([value, label]) => ({
+    value,
+    label,
+  }));
+}

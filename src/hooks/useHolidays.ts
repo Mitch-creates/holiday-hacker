@@ -1,18 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
-import { getHolidays } from "../services/holidayApi";
-import { Holiday } from "../services/holidayApi";
+import Holidays from "date-holidays";
+import { useMemo } from "react";
 
-export function useHolidays(
-  countryCode: string,
-  year: number,
-  enabled: boolean = true
-) {
-  return useQuery<Holiday[]>({
-    queryKey: ["holidays", countryCode, year],
-    queryFn: () => getHolidays(countryCode, year),
-    enabled,
-    staleTime: 1000 * 60 * 60, // Keep the data fresh for 1 hour
-    gcTime: 1000 * 60 * 60 * 24, // Garbage collection after 24 hours
-    refetchOnWindowFocus: false, // Don't refetch when the window is focused
-  });
+const hd = new Holidays();
+
+// Get holidays for a specific year, country, and region
+export function useHolidays(year: number, country: string, region?: string) {
+  return useMemo(() => {
+    // If region is provided, initialize with country and region so we get region specific holidays
+    // Otherwise, initialize with just the country to get nationwide holidays
+    if (region) hd.init(country, region);
+    else hd.init(country);
+
+    const holidays = hd
+      .getHolidays(year)
+      .filter((holiday) => holiday.type === "public");
+    return holidays;
+  }, [year, country, region]);
 }

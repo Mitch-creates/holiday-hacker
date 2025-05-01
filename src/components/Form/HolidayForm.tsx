@@ -21,8 +21,8 @@ import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
 import { useHolidays } from "@/hooks/useHolidays";
 import { useMemo } from "react";
-import { Holiday } from "@/services/holidayApi";
 import { formatDate } from "@/lib/utils";
+import { HolidaysTypes } from "date-holidays";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -111,18 +111,15 @@ export function HolidayForm() {
   const selectedCountry = form.watch("selectedCountry");
   const selectedRegion = form.watch("selectedRegion");
 
-  const {
-    data: holidays = [],
-    isLoading: loadingHolidays,
-    isError: errorHolidays,
-  } = useHolidays(
-    selectedCountry,
+  const holidays: HolidaysTypes.Holiday[] = useHolidays(
     new Date().getFullYear(),
-    Boolean(selectedCountry)
+    selectedCountry,
+    selectedRegion
   );
   console.log(holidays);
 
-  const chosenHolidays = useMemo<Holiday[]>(() => {
+  // Move this to context
+  const chosenHolidays = useMemo<HolidaysTypes.Holiday[]>(() => {
     let globalHolidays: Holiday[] = holidays.filter((h) => h.global);
     // Add regionalHolidays if selected
     if (selectedRegion !== "default") {
@@ -191,64 +188,69 @@ export function HolidayForm() {
         >
           <div className="space-y-3">
             <CountrySelect control={form.control} />
-            {holidays && (
-              <RegionSelect control={form.control} holidays={holidays} />
+            {selectedCountry && (
+              <RegionSelect
+                control={form.control}
+                selectedCountry={selectedCountry}
+              />
             )}
           </div>
-          <div className="space-y-2">
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-normal">
-                  Automatically Detected
-                  <span className={`text-theme-6 mx-1`}>
-                    {chosenHolidays?.length}
-                  </span>
-                  Holidays
-                </label>
-                <Button
-                  variant="link"
-                  className="cursor-pointer text-amber-600 outline text-sm font-normal"
-                  onClick={(e) => {
-                    e.preventDefault();
-                  }}
-                >
-                  <RefreshCcw className="w-3 h-3 " /> <span>Refresh</span>
-                </Button>
-              </div>
-              <p className="text-muted-foreground text-xs font-normal mb-2">
-                These holidays are automatically detected based on your country
-                and State/Region selection.
-              </p>
-              <div className="rounded-md border p-4">
-                <ul className="gap-4">
-                  {chosenHolidays?.map((holiday: Holiday) => (
-                    <li
-                      key={holiday.name}
-                      className="flex items-center justify-between rounded-md border p-2"
-                    >
-                      <div>
-                        <div className="text-xs font-medium">
-                          {holiday.name}
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(new Date(holiday.date))}
-                        </span>
-                      </div>
-                      <Button
-                        variant="link"
-                        className="cursor-pointer text-amber-600 outline text-sm font-normal ml-auto"
-                        onClick={(e) => {
-                          e.preventDefault();
-                        }}
+          {holidays.length > 0 && (
+            <div className="space-y-2">
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-normal">
+                    Automatically Detected
+                    <span className={`text-theme-6 mx-1`}>
+                      {holidays?.length}
+                    </span>
+                    Holidays
+                  </label>
+                  <Button
+                    variant="link"
+                    className="cursor-pointer text-amber-600 outline text-sm font-normal"
+                    onClick={(e) => {
+                      e.preventDefault();
+                    }}
+                  >
+                    <RefreshCcw className="w-3 h-3 " /> <span>Refresh</span>
+                  </Button>
+                </div>
+                <p className="text-muted-foreground text-xs font-normal mb-2">
+                  These holidays are automatically detected based on your
+                  country and State/Region selection.
+                </p>
+                <div className="rounded-md border p-4">
+                  <ul className="gap-4">
+                    {holidays?.map((holiday) => (
+                      <li
+                        key={holiday.name}
+                        className="flex items-center justify-between rounded-md border p-2"
                       >
-                        <Trash2 className="w-3 h-3 " />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
+                        <div>
+                          <div className="text-xs font-medium">
+                            {holiday.name}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {formatDate(new Date(holiday.date))}
+                          </span>
+                        </div>
+                        <Button
+                          variant="link"
+                          className="cursor-pointer text-amber-600 outline text-sm font-normal ml-auto"
+                          onClick={(e) => {
+                            e.preventDefault();
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3 " />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </FormStepBox>
 
         <Button type="submit">Submit</Button>
