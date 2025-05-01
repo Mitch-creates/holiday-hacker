@@ -15,10 +15,14 @@ import {
   CalendarRange,
   TreePalm,
   RefreshCcw,
+  Trash2,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
 import { useHolidays } from "@/hooks/useHolidays";
+import { useMemo } from "react";
+import { Holiday } from "@/services/holidayApi";
+import { formatDate } from "@/lib/utils";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -38,7 +42,7 @@ const formSchema = z.object({
     }
   ),
   selectedCountry: z.string().nonempty("Please select a country"),
-  selectedRegion: z.string().optional(),
+  selectedRegion: z.string().default("default"),
 });
 
 const StepNumberIcon = ({
@@ -93,7 +97,8 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const { updateFormContent } = useHolidayForm();
+  const { updateFormContent, state } = useHolidayForm();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -104,6 +109,7 @@ export function HolidayForm() {
     },
   });
   const selectedCountry = form.watch("selectedCountry");
+  const selectedRegion = form.watch("selectedRegion");
 
   const {
     data: holidays = [],
@@ -114,6 +120,18 @@ export function HolidayForm() {
     new Date().getFullYear(),
     Boolean(selectedCountry)
   );
+  console.log(holidays);
+
+  const chosenHolidays = useMemo<Holiday[]>(() => {
+    let globalHolidays: Holiday[] = holidays.filter((h) => h.global);
+    // Add regionalHolidays if selected
+    if (selectedRegion !== "default") {
+      globalHolidays = globalHolidays.concat(
+        holidays.filter((h) => h.counties?.includes(selectedRegion))
+      );
+    }
+    return globalHolidays.sort((a, b) => a.date.localeCompare(b.date));
+  }, [holidays, selectedRegion, selectedCountry]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // const newFormContent = {
@@ -177,40 +195,58 @@ export function HolidayForm() {
               <RegionSelect control={form.control} holidays={holidays} />
             )}
           </div>
-          <div>
-            <div className="grid gap-4">
-              <div className="flex">
-                <label>Automatically Detected Holidays</label>
+          <div className="space-y-2">
+            <div>
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-normal">
+                  Automatically Detected
+                  <span className={`text-theme-6 mx-1`}>
+                    {chosenHolidays?.length}
+                  </span>
+                  Holidays
+                </label>
                 <Button
                   variant="link"
+                  className="cursor-pointer text-amber-600 outline text-sm font-normal"
                   onClick={(e) => {
                     e.preventDefault();
                   }}
                 >
-                  <RefreshCcw className="w-3 h-3 text-muted-foreground" />{" "}
-                  Refresh
+                  <RefreshCcw className="w-3 h-3 " /> <span>Refresh</span>
                 </Button>
-                <span>{holidays.length} holidays found</span>
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-xs font-normal mb-2">
                 These holidays are automatically detected based on your country
                 and State/Region selection.
               </p>
-              <ul className="flex gap-4 ">
-                {holidays.map((holiday) => (
-                  <li
-                    key={holiday.name}
-                    className="flex items-center justify-between rounded-md border p-4"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-sm font-medium">{holiday.name}</div>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {holiday.date}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <div className="rounded-md border p-4">
+                <ul className="gap-4">
+                  {chosenHolidays?.map((holiday: Holiday) => (
+                    <li
+                      key={holiday.name}
+                      className="flex items-center justify-between rounded-md border p-2"
+                    >
+                      <div>
+                        <div className="text-xs font-medium">
+                          {holiday.name}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(new Date(holiday.date))}
+                        </span>
+                      </div>
+                      <Button
+                        variant="link"
+                        className="cursor-pointer text-amber-600 outline text-sm font-normal ml-auto"
+                        onClick={(e) => {
+                          e.preventDefault();
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3 " />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </FormStepBox>
