@@ -5,6 +5,6 @@ const holidays = new Holidays();
 
 export function useRegions(countryCode: string) {
   return useMemo(() => {
-    return holidays.getStates(countryCode);
+    return holidays.getStates(countryCode, "en-US");
   }, [countryCode]);
 }

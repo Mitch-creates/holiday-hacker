@@ -12,6 +12,7 @@ import {
 interface SelectFormFieldProps {
   control: Control<HolidayFormValues>;
   formFieldName: "selectedCountry" | "selectedRegion";
+  handleChange?: (value: string) => void;
   options: { value: string; label: string }[];
   placeholder?: string;
   widthClassName?: string;
@@ -22,6 +23,7 @@ interface SelectFormFieldProps {
 
 export default function SelectFormField({
   control,
+  handleChange,
   formFieldName,
   options,
   placeholder,
@@ -46,6 +48,10 @@ export default function SelectFormField({
             <div className="relative w-full">
               <select
                 {...field}
+                onChange={(e) => {
+                  field.onChange(e);
+                  if (handleChange) handleChange(e.target.value);
+                }}
                 className={`
                 appearance-none w-full h-9 px-3 py-1.5
                 rounded-md 

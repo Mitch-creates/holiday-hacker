@@ -1,29 +1,40 @@
-import countries from "i18n-iso-countries";
-import enLocale from "i18n-iso-countries/langs/en.json";
 import { Control } from "react-hook-form";
 import { HolidayFormValues } from "./HolidayForm";
 import SelectFormField from "./SelectFormField";
 import { useRegions } from "@/hooks/useRegions";
 import { mapToOptions } from "@/lib/utils";
+import { useHolidayForm } from "@/context/FormContext";
 
 export default function RegionSelect({
   control,
-  selectedCountry,
   themeColor1,
   themeColor2,
 }: {
   control: Control<HolidayFormValues>;
 }) {
-  const regionOptions = mapToOptions(useRegions(selectedCountry)).sort((a, b) =>
-    a.label.localeCompare(b.label)
+  const { updateSelectedRegion, state } = useHolidayForm();
+  const regionOptions = mapToOptions(useRegions(state.selectedCountry)).sort(
+    (a, b) => a.label.localeCompare(b.label)
   );
+  // When the regionOptions is not empty, we add default option at the front of the list
+  if (regionOptions.length > 0) {
+    regionOptions.unshift({
+      value: "default",
+      label: "All states (nationwide holidays only)",
+    });
+  }
+
+  function handleRegionChange(region: string) {
+    updateSelectedRegion(region);
+  }
 
   // If no region‐specific holidays exist or only the default option is present, return null
-  if (regionOptions?.length <= 1 && regionOptions[0]?.value === "default")
+  if (regionOptions?.length <= 0 && regionOptions[0]?.value === "default")
     return null;
   return (
     <SelectFormField
       control={control}
+      handleChange={handleRegionChange}
       formFieldName="selectedRegion"
       selectLabel="Select Province/State"
       options={regionOptions}

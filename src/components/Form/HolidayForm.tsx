@@ -14,15 +14,12 @@ import {
   CalendarClock,
   CalendarRange,
   TreePalm,
-  RefreshCcw,
-  Trash2,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
 import { useHolidays } from "@/hooks/useHolidays";
-import { useMemo } from "react";
-import { formatDate } from "@/lib/utils";
 import { HolidaysTypes } from "date-holidays";
+import { ModifyHolidays } from "./ModifyHolidays";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -108,27 +105,6 @@ export function HolidayForm() {
       selectedRegion: "",
     },
   });
-  const selectedCountry = form.watch("selectedCountry");
-  const selectedRegion = form.watch("selectedRegion");
-
-  const holidays: HolidaysTypes.Holiday[] = useHolidays(
-    new Date().getFullYear(),
-    selectedCountry,
-    selectedRegion
-  );
-  console.log(holidays);
-
-  // Move this to context
-  const chosenHolidays = useMemo<HolidaysTypes.Holiday[]>(() => {
-    let globalHolidays: Holiday[] = holidays.filter((h) => h.global);
-    // Add regionalHolidays if selected
-    if (selectedRegion !== "default") {
-      globalHolidays = globalHolidays.concat(
-        holidays.filter((h) => h.counties?.includes(selectedRegion))
-      );
-    }
-    return globalHolidays.sort((a, b) => a.date.localeCompare(b.date));
-  }, [holidays, selectedRegion, selectedCountry]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     // const newFormContent = {
@@ -137,6 +113,13 @@ export function HolidayForm() {
     // };
     // updateFormContent(newFormContent);
     console.log(values);
+  }
+
+  function handleDeleteHoliday(holiday: HolidaysTypes.Holiday) {
+    console.log("Delete holiday:", holiday);
+  }
+  function handleRefreshHolidays() {
+    console.log("Refresh holidays");
   }
 
   return (
@@ -188,69 +171,15 @@ export function HolidayForm() {
         >
           <div className="space-y-3">
             <CountrySelect control={form.control} />
-            {selectedCountry && (
-              <RegionSelect
-                control={form.control}
-                selectedCountry={selectedCountry}
-              />
+            {form.watch("selectedCountry") && (
+              <RegionSelect control={form.control} />
             )}
           </div>
-          {holidays.length > 0 && (
-            <div className="space-y-2">
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-normal">
-                    Automatically Detected
-                    <span className={`text-theme-6 mx-1`}>
-                      {holidays?.length}
-                    </span>
-                    Holidays
-                  </label>
-                  <Button
-                    variant="link"
-                    className="cursor-pointer text-amber-600 outline text-sm font-normal"
-                    onClick={(e) => {
-                      e.preventDefault();
-                    }}
-                  >
-                    <RefreshCcw className="w-3 h-3 " /> <span>Refresh</span>
-                  </Button>
-                </div>
-                <p className="text-muted-foreground text-xs font-normal mb-2">
-                  These holidays are automatically detected based on your
-                  country and State/Region selection.
-                </p>
-                <div className="rounded-md border p-4">
-                  <ul className="gap-4">
-                    {holidays?.map((holiday) => (
-                      <li
-                        key={holiday.name}
-                        className="flex items-center justify-between rounded-md border p-2"
-                      >
-                        <div>
-                          <div className="text-xs font-medium">
-                            {holiday.name}
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            {formatDate(new Date(holiday.date))}
-                          </span>
-                        </div>
-                        <Button
-                          variant="link"
-                          className="cursor-pointer text-amber-600 outline text-sm font-normal ml-auto"
-                          onClick={(e) => {
-                            e.preventDefault();
-                          }}
-                        >
-                          <Trash2 className="w-3 h-3 " />
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
+          <ModifyHolidays
+            onDeleteHoliday={handleDeleteHoliday}
+            onRefreshClick={handleRefreshHolidays}
+            themeColor="theme-6"
+          />
         </FormStepBox>
 
         <Button type="submit">Submit</Button>

@@ -3,6 +3,8 @@ import { HolidayForm } from "./components/Form/HolidayForm";
 
 export default function App() {
   const [hasGeneratedResult, setHasGeneratedResult] = useState(false);
+
+  // Make AppLayout component
   return (
     <>
       <div

@@ -1,9 +1,16 @@
-import { createContext, useContext, useReducer } from "react";
+import { useHolidays } from "@/hooks/useHolidays";
+import { HolidaysTypes } from "date-holidays";
+import { createContext, useContext, useEffect, useReducer } from "react";
+
+// Design choice between keeping track of just the deleted holidays and the raw public holidays or an array derived from the public holidays of that country/region and make it modifiable
 
 interface FormContextType {
   state: FormState;
   updateUserHolidays: (userHolidays: string) => void;
   updateStrategy: (strategy: string) => void;
+  updateSelectedCountry: (country: string) => void;
+  updateSelectedRegion: (region: string) => void;
+  setHolidays: (holidays: HolidaysTypes.Holiday[]) => void;
   deleteHoliday: (date: string) => void;
   resetHolidays: () => void;
 }
@@ -13,18 +20,22 @@ const FormContext = createContext<FormContextType | undefined>(undefined);
 interface FormState {
   userHolidays: string;
   strategy: string;
-  holidays: object[];
+  selectedCountry: string;
+  selectedRegion: string;
+  rawHolidays: HolidaysTypes.Holiday[];
+  deletedHolidays: string[];
   companyDaysOff: object[];
-  deletedHolidayDates: string[]; //Storing the deleted holidays instead of the full holidays list. Keeps server‐state vs. client‐state separate. React Query manages fetching/caching; The Context manages only the bits of UI state that React Query doesn’t know about
   error: string;
 }
-
+//Add the option pick a year for the holidays
 const initialState: FormState = {
   userHolidays: "",
   strategy: "",
-  holidays: [],
+  rawHolidays: [],
   companyDaysOff: [],
-  deletedHolidayDates: [],
+  deletedHolidays: [],
+  selectedCountry: "",
+  selectedRegion: "",
   error: "",
 };
 type SetFieldActions = {
@@ -34,7 +45,10 @@ type SetFieldActions = {
     value: FormState[K];
   };
 }[keyof FormState];
-type DeleteHolidayAction = { type: "DELETE_HOLIDAY"; date: string };
+type DeleteHolidayAction = {
+  type: "DELETE_HOLIDAY";
+  date: HolidaysTypes.Holiday;
+};
 type ResetHolidaysAction = { type: "RESET_HOLIDAYS" };
 
 export type FormAction =
@@ -55,7 +69,7 @@ function reducer(state: FormState, action: FormAction) {
       return {
         ...state,
         deletedHolidayDates: Array.from(
-          new Set([...state.deletedHolidayDates, action.date])
+          new Set([...state.rawHolidays, action.date])
         ),
       };
 
@@ -79,7 +93,13 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   function updateStrategy(strategy: string) {
     dispatch({ type: "SET_FIELD", field: "strategy", value: strategy });
   }
-  function deleteHoliday(date: string) {
+  function updateSelectedCountry(country: string) {
+    dispatch({ type: "SET_FIELD", field: "selectedCountry", value: country });
+  }
+  function updateSelectedRegion(region: string) {
+    dispatch({ type: "SET_FIELD", field: "selectedRegion", value: region });
+  }
+  function deleteHoliday(date: HolidaysTypes.Holiday) {
     dispatch({ type: "DELETE_HOLIDAY", date });
   }
 
@@ -87,12 +107,31 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "RESET_HOLIDAYS" });
   }
 
+  const holidays: HolidaysTypes.Holiday[] = useHolidays(
+    new Date().getFullYear(),
+    state.selectedCountry,
+    state.selectedRegion
+  );
+  console.log("Holidays", holidays);
+
+  useEffect(() => {
+    if (state.selectedCountry && state.selectedRegion) {
+      dispatch({
+        type: "SET_FIELD",
+        field: "rawHolidays",
+        value: holidays,
+      });
+    }
+  }, [state.selectedCountry, state.selectedRegion, holidays]);
+
   return (
     <FormContext.Provider
       value={{
         state,
         updateUserHolidays: updateUserHolidays,
         updateStrategy: updateStrategy,
+        updateSelectedCountry: updateSelectedCountry,
+        updateSelectedRegion: updateSelectedRegion,
         deleteHoliday: deleteHoliday,
         resetHolidays: resetHolidays,
       }}
