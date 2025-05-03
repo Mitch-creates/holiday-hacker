@@ -47,7 +47,7 @@ type SetFieldActions = {
 }[keyof FormState];
 type DeleteHolidayAction = {
   type: "DELETE_HOLIDAY";
-  date: HolidaysTypes.Holiday;
+  date: string;
 };
 type ResetHolidaysAction = { type: "RESET_HOLIDAYS" };
 
@@ -68,15 +68,15 @@ function reducer(state: FormState, action: FormAction) {
     case "DELETE_HOLIDAY":
       return {
         ...state,
-        deletedHolidayDates: Array.from(
-          new Set([...state.rawHolidays, action.date])
+        deletedHolidays: Array.from(
+          new Set([...state.deletedHolidays, action.date])
         ),
       };
 
     case "RESET_HOLIDAYS":
       return {
         ...state,
-        deletedHolidayDates: [],
+        deletedHolidays: [],
       };
 
     default:
@@ -99,7 +99,7 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   function updateSelectedRegion(region: string) {
     dispatch({ type: "SET_FIELD", field: "selectedRegion", value: region });
   }
-  function deleteHoliday(date: HolidaysTypes.Holiday) {
+  function deleteHoliday(date: string) {
     dispatch({ type: "DELETE_HOLIDAY", date });
   }
 
@@ -112,7 +112,17 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
     state.selectedCountry,
     state.selectedRegion
   );
-  console.log("Holidays", holidays);
+
+  useEffect(() => {
+    if (state.selectedCountry) {
+      dispatch({
+        type: "SET_FIELD",
+        field: "selectedRegion",
+        value: "default",
+      });
+      resetHolidays();
+    }
+  }, [state.selectedCountry]);
 
   useEffect(() => {
     if (state.selectedCountry && state.selectedRegion) {
@@ -121,6 +131,7 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
         field: "rawHolidays",
         value: holidays,
       });
+      resetHolidays();
     }
   }, [state.selectedCountry, state.selectedRegion, holidays]);
 

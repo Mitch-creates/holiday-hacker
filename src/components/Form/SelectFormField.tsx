@@ -49,6 +49,7 @@ export default function SelectFormField({
               <select
                 {...field}
                 onChange={(e) => {
+                  // Set the selected value in the form state, this is required for react-hook-form to work properly
                   field.onChange(e);
                   if (handleChange) handleChange(e.target.value);
                 }}

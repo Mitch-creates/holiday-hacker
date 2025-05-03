@@ -29,8 +29,7 @@ export default function RegionSelect({
   }
 
   // If no region‐specific holidays exist or only the default option is present, return null
-  if (regionOptions?.length <= 0 && regionOptions[0]?.value === "default")
-    return null;
+  if (regionOptions?.length === 0) return null;
   return (
     <SelectFormField
       control={control}

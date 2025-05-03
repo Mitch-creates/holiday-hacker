@@ -12,7 +12,8 @@ export default function CountrySelect({
 }: {
   control: Control<HolidayFormValues>;
 }) {
-  const { updateSelectedCountry } = useHolidayForm();
+  const { updateSelectedCountry, updateSelectedRegion, state } =
+    useHolidayForm();
   // Retrieve the list of countries from the custom hook and sort them alphabetically
   const countryOptions = mapToOptions(useCountries()).sort((a, b) =>
     a.label.localeCompare(b.label)
@@ -20,6 +21,7 @@ export default function CountrySelect({
 
   function handleCountryChange(region: string) {
     updateSelectedCountry(region);
+    updateSelectedRegion("default");
   }
 
   return (

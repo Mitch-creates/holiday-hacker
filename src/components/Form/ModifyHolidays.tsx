@@ -23,8 +23,6 @@ export function ModifyHolidays({
     );
   }, [rawHolidays, deletedHolidays]);
 
-  if (modifiableHolidays.length === 0) return null;
-
   return (
     <div className="space-y-2">
       <div>
@@ -51,33 +49,35 @@ export function ModifyHolidays({
           These holidays are automatically detected based on your country and
           State/Region selection.
         </p>
-        <div className="rounded-md border p-4">
-          <ul className="space-y-2">
-            {modifiableHolidays?.map((holiday) => (
-              <li
-                key={holiday.name}
-                className="flex items-center justify-between rounded-md border p-2"
-              >
-                <div>
-                  <div className="text-xs font-medium">{holiday.name}</div>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDate(new Date(holiday.date))}
-                  </span>
-                </div>
-                <Button
-                  variant="link"
-                  className="cursor-pointer text-amber-600 outline text-sm font-normal ml-auto"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    deleteHoliday(holiday.date);
-                  }}
+        {modifiableHolidays.length > 0 && (
+          <div className="rounded-md border p-4">
+            <ul className="space-y-2">
+              {modifiableHolidays?.map((holiday) => (
+                <li
+                  key={holiday.name}
+                  className="flex items-center justify-between rounded-md border p-2"
                 >
-                  <Trash2 className="w-3 h-3 " />
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </div>
+                  <div>
+                    <div className="text-xs font-medium">{holiday.name}</div>
+                    <span className="text-xs text-muted-foreground">
+                      {formatDate(new Date(holiday.date))}
+                    </span>
+                  </div>
+                  <Button
+                    variant="link"
+                    className="cursor-pointer text-amber-600 outline text-sm font-normal ml-auto"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      deleteHoliday(holiday.date);
+                    }}
+                  >
+                    <Trash2 className="w-3 h-3 " />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
