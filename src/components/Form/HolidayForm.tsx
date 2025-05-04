@@ -95,7 +95,8 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const { updateFormContent, updateUserHolidays, state } = useHolidayForm();
+  const { updateFormContent, updateUserHolidays, updateCompany, state } =
+    useHolidayForm();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
