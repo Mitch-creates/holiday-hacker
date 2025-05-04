@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import InputNumberFormField from "./InputNumberFormField";
 import { RadioGroupFormField } from "./RadioGroupFormField";
 import { useHolidayForm } from "@/context/FormContext";
-import { FormStepBox } from "./StepBox";
+import { FormStepBox } from "./FormStepBox";
 import { clsx } from "clsx";
 import {
   GanttChart,
@@ -19,6 +19,8 @@ import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
 import { HolidaysTypes } from "date-holidays";
 import { ModifyHolidays } from "./ModifyHolidays";
+import { Calendar } from "../ui/calendar";
+import FormContainer from "./FormContainer";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -121,65 +123,79 @@ export function HolidayForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormStepBox
-          stepIcon={
-            <StepNumberIcon color="theme-1" textColor="theme-2" number={1} />
-          }
-          title="Enter Your Number Of Holidays"
-          label="How many paid days off do you have?"
-          tooltip="Include only official holidays, not sick days or unpaid leave."
-          themeColor1="theme-1"
-          themeColor2="theme-2"
-        >
-          <InputNumberFormField
-            control={form.control}
-            formFieldName="userHolidays"
-            placeholder="e.g. 20"
-            themeColor="theme-1"
-            min={1}
-            max={365}
-            onValueChange={handleUserHolidaysChange}
-          />
-        </FormStepBox>
-        <FormStepBox
-          stepIcon={
-            <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />
-          }
-          title="Choose Type Of Holidays"
-          label="What type of holidays do you prefer?"
-          tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
-          themeColor1="theme-3"
-          themeColor2="theme-4"
-        >
-          <RadioGroupFormField
-            control={form.control}
-            formFieldName="selectedTypeOfHoliday"
-            options={radioOptions}
-            themeColor="theme-4"
-          />
-        </FormStepBox>
-        <FormStepBox
-          stepIcon={
-            <StepNumberIcon color="theme-5" textColor="theme-6" number={3} />
-          }
-          title="Get Public Holidays"
-          label="Get the public holidays for 2025 by selecting your country, state, and region."
-          tooltip="Make sure that you're not accounting for these holidays in the first section, keep them seperate."
-          themeColor1="theme-5"
-          themeColor2="theme-6"
-        >
-          <div className="space-y-3">
-            <CountrySelect control={form.control} />
-            {form.watch("selectedCountry") && (
-              <RegionSelect control={form.control} />
-            )}
-          </div>
-          <ModifyHolidays themeColor="theme-6" />
-        </FormStepBox>
+      <FormContainer title="Holiday planner">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormStepBox
+            stepIcon={
+              <StepNumberIcon color="theme-1" textColor="theme-2" number={1} />
+            }
+            title="Enter Your Number Of Holidays"
+            label="How many paid days off do you have?"
+            tooltip="Include only official holidays, not sick days or unpaid leave."
+            themeColor1="theme-1"
+            themeColor2="theme-2"
+          >
+            <InputNumberFormField
+              control={form.control}
+              formFieldName="userHolidays"
+              placeholder="e.g. 20"
+              themeColor="theme-1"
+              min={1}
+              max={365}
+              onValueChange={handleUserHolidaysChange}
+            />
+          </FormStepBox>
+          <FormStepBox
+            stepIcon={
+              <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />
+            }
+            title="Choose Type Of Holidays"
+            label="What type of holidays do you prefer?"
+            tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
+            themeColor1="theme-3"
+            themeColor2="theme-4"
+          >
+            <RadioGroupFormField
+              control={form.control}
+              formFieldName="selectedTypeOfHoliday"
+              options={radioOptions}
+              themeColor="theme-4"
+            />
+          </FormStepBox>
+          <FormStepBox
+            stepIcon={
+              <StepNumberIcon color="theme-5" textColor="theme-6" number={3} />
+            }
+            title="Get Public Holidays"
+            label="Get the public holidays for 2025 by selecting your country, state, and region."
+            tooltip="Make sure that you're not accounting for these holidays in the first section, keep them seperate."
+            themeColor1="theme-5"
+            themeColor2="theme-6"
+          >
+            <div className="space-y-3">
+              <CountrySelect control={form.control} />
+              {form.watch("selectedCountry") && (
+                <RegionSelect control={form.control} />
+              )}
+            </div>
+            <ModifyHolidays themeColor="theme-6" />
+          </FormStepBox>
+          <FormStepBox
+            stepIcon={
+              <StepNumberIcon color="theme-7" textColor="theme-8" number={4} />
+            }
+            title="Provide your company holidays"
+            label="Provide your company's holidays for 2025 by selecting them from the calendar."
+            tooltip="After choosing your company's holidays, you can easily edit or delete them from the list."
+            themeColor1="theme-7"
+            themeColor2="theme-8"
+          >
+            <Calendar mode="multiple"></Calendar>
+          </FormStepBox>
 
-        <Button type="submit">Submit</Button>
-      </form>
+          <Button type="submit">Submit</Button>
+        </form>
+      </FormContainer>
     </Form>
   );
 }

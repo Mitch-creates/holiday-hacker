@@ -6,9 +6,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import { Label } from "@radix-ui/react-label";
 
-interface StepBoxProps {
+interface FormStepBoxProps {
   stepIcon?: ReactNode;
   title: string;
   label: string;
@@ -26,7 +25,7 @@ export function FormStepBox({
   children,
   themeColor1,
   themeColor2,
-}: StepBoxProps) {
+}: FormStepBoxProps) {
   return (
     <div className="border p-4 rounded-2xl shadow-sm mb-6 bg-white space-y-2">
       <div className="flex items-center justify-between">

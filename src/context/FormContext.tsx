@@ -7,6 +7,7 @@ import { createContext, useContext, useEffect, useReducer } from "react";
 interface FormContextType {
   state: FormState;
   updateUserHolidays: (userHolidays: string) => void;
+  updateYear: (year: string) => void;
   updateStrategy: (strategy: string) => void;
   updateSelectedCountry: (country: string) => void;
   updateSelectedRegion: (region: string) => void;
@@ -19,6 +20,7 @@ const FormContext = createContext<FormContextType | undefined>(undefined);
 
 interface FormState {
   userHolidays: string;
+  year: string;
   strategy: string;
   selectedCountry: string;
   selectedRegion: string;
@@ -27,9 +29,10 @@ interface FormState {
   companyDaysOff: object[];
   error: string;
 }
-//Add the option pick a year for the holidays
+
 const initialState: FormState = {
   userHolidays: "",
+  year: "",
   strategy: "",
   rawHolidays: [],
   companyDaysOff: [],
@@ -87,6 +90,10 @@ function reducer(state: FormState, action: FormAction) {
 export function FormProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  function updateYear(year: string) {
+    dispatch({ type: "SET_FIELD", field: "year", value: year });
+  }
+
   function updateUserHolidays(userHolidays: string) {
     dispatch({ type: "SET_FIELD", field: "userHolidays", value: userHolidays });
   }
@@ -139,6 +146,7 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
     <FormContext.Provider
       value={{
         state,
+        updateYear: updateYear,
         updateUserHolidays: updateUserHolidays,
         updateStrategy: updateStrategy,
         updateSelectedCountry: updateSelectedCountry,
