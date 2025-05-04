@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
-import { useHolidays } from "@/hooks/useHolidays";
 import { HolidaysTypes } from "date-holidays";
 import { ModifyHolidays } from "./ModifyHolidays";
 
@@ -94,7 +93,7 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const { updateFormContent, state } = useHolidayForm();
+  const { updateFormContent, updateUserHolidays, state } = useHolidayForm();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -115,11 +114,9 @@ export function HolidayForm() {
     console.log(values);
   }
 
-  function handleDeleteHoliday(holiday: HolidaysTypes.Holiday) {
-    console.log("Delete holiday:", holiday);
-  }
-  function handleRefreshHolidays() {
-    console.log("Refresh holidays");
+  function handleUserHolidaysChange(value: string) {
+    // Update the context with the new value
+    updateUserHolidays(value);
   }
 
   return (
@@ -140,6 +137,9 @@ export function HolidayForm() {
             formFieldName="userHolidays"
             placeholder="e.g. 20"
             themeColor="theme-1"
+            min={1}
+            max={365}
+            onValueChange={handleUserHolidaysChange}
           />
         </FormStepBox>
         <FormStepBox
@@ -175,11 +175,7 @@ export function HolidayForm() {
               <RegionSelect control={form.control} />
             )}
           </div>
-          <ModifyHolidays
-            onDeleteHoliday={handleDeleteHoliday}
-            onRefreshClick={handleRefreshHolidays}
-            themeColor="theme-6"
-          />
+          <ModifyHolidays themeColor="theme-6" />
         </FormStepBox>
 
         <Button type="submit">Submit</Button>

@@ -6,8 +6,6 @@ import { useMemo } from "react";
 import { useHolidayForm } from "@/context/FormContext";
 
 interface ModifyHolidaysProps {
-  onRefreshClick?: () => void;
-  onDeleteHoliday?: (holiday: HolidaysTypes.Holiday) => void;
   themeColor?: string;
 }
 
