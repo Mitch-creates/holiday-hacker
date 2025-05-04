@@ -15,6 +15,10 @@ import {
   CalendarRange,
   TreePalm,
 } from "lucide-react";
+import CountrySelect from "./CountrySelect";
+import RegionSelect from "./RegionSelect";
+import { HolidaysTypes } from "date-holidays";
+import { ModifyHolidays } from "./ModifyHolidays";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -33,6 +37,8 @@ const formSchema = z.object({
       errorMap: () => ({ message: "Please select a type of holiday" }),
     }
   ),
+  selectedCountry: z.string().nonempty("Please select a country"),
+  selectedRegion: z.string().default("default"),
 });
 
 const StepNumberIcon = ({
@@ -87,22 +93,30 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const { updateFormContent } = useHolidayForm();
+  const { updateFormContent, updateUserHolidays, state } = useHolidayForm();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       userHolidays: 0,
       selectedTypeOfHoliday: "longWeekend",
+      selectedCountry: "",
+      selectedRegion: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    const newFormContent = {
-      userHolidays: values.userHolidays,
-      selectedTypeOfHoliday: values.selectedTypeOfHoliday,
-    };
-    updateFormContent(newFormContent);
+    // const newFormContent = {
+    //   userHolidays: values.userHolidays,
+    //   selectedTypeOfHoliday: values.selectedTypeOfHoliday,
+    // };
+    // updateFormContent(newFormContent);
     console.log(values);
+  }
+
+  function handleUserHolidaysChange(value: string) {
+    // Update the context with the new value
+    updateUserHolidays(value);
   }
 
   return (
@@ -112,7 +126,7 @@ export function HolidayForm() {
           stepIcon={
             <StepNumberIcon color="theme-1" textColor="theme-2" number={1} />
           }
-          title="Number of holidays"
+          title="Enter Your Number Of Holidays"
           label="How many paid days off do you have?"
           tooltip="Include only official holidays, not sick days or unpaid leave."
           themeColor1="theme-1"
@@ -121,16 +135,18 @@ export function HolidayForm() {
           <InputNumberFormField
             control={form.control}
             formFieldName="userHolidays"
-            label="How many paid days off do you have?"
             placeholder="e.g. 20"
             themeColor="theme-1"
+            min={1}
+            max={365}
+            onValueChange={handleUserHolidaysChange}
           />
         </FormStepBox>
         <FormStepBox
           stepIcon={
             <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />
           }
-          title="Type of holidays"
+          title="Choose Type Of Holidays"
           label="What type of holidays do you prefer?"
           tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
           themeColor1="theme-3"
@@ -139,11 +155,29 @@ export function HolidayForm() {
           <RadioGroupFormField
             control={form.control}
             formFieldName="selectedTypeOfHoliday"
-            label="What type of holidays do you prefer?"
             options={radioOptions}
             themeColor="theme-4"
           />
         </FormStepBox>
+        <FormStepBox
+          stepIcon={
+            <StepNumberIcon color="theme-5" textColor="theme-6" number={3} />
+          }
+          title="Get Public Holidays"
+          label="Get the public holidays for 2025 by selecting your country, state, and region."
+          tooltip="Make sure that you're not accounting for these holidays in the first section, keep them seperate."
+          themeColor1="theme-5"
+          themeColor2="theme-6"
+        >
+          <div className="space-y-3">
+            <CountrySelect control={form.control} />
+            {form.watch("selectedCountry") && (
+              <RegionSelect control={form.control} />
+            )}
+          </div>
+          <ModifyHolidays themeColor="theme-6" />
+        </FormStepBox>
+
         <Button type="submit">Submit</Button>
       </form>
     </Form>

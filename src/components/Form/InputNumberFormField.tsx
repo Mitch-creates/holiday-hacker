@@ -1,28 +1,28 @@
 import { Input } from "../ui/input";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Control } from "react-hook-form";
 import { HolidayFormValues } from "./HolidayForm";
+import { useState } from "react";
+import { useHolidayForm } from "@/context/FormContext";
 
 interface InputNumberFormFieldProps {
   control: Control<HolidayFormValues>;
   formFieldName: "userHolidays";
-  label: string;
   placeholder: string;
   themeColor: string;
+  min?: number;
+  max?: number;
+  onValueChange?: (value: string) => void;
 }
 
 export default function InputNumberFormField({
   control,
   formFieldName,
-  label,
   placeholder,
   themeColor,
+  min = 1,
+  max = 365,
+  onValueChange,
 }: InputNumberFormFieldProps) {
   return (
     <FormField
@@ -30,9 +30,6 @@ export default function InputNumberFormField({
       name={formFieldName}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="font-bold text-muted-foreground">
-            {label}
-          </FormLabel>
           <FormControl>
             <Input
               className={`w-45 focus:outline-none focus-visible:!border-${themeColor} focus:!ring-${themeColor}  border-${themeColor}`}
@@ -41,6 +38,47 @@ export default function InputNumberFormField({
               }
               placeholder={placeholder}
               {...field}
+              inputMode="numeric"
+              onChange={(e) => {
+                const value = e.target.value;
+
+                // Only allow digits or empty string
+                if (value === "" || /^\d+$/.test(value)) {
+                  // Pass the raw string to form state
+                  field.onChange(value);
+
+                  // For number validation
+                  if (value !== "") {
+                    const numValue = parseInt(value, 10);
+
+                    // Apply min/max constraints
+                    if (numValue > max) {
+                      field.onChange(max.toString());
+                      if (onValueChange) onValueChange(max.toString());
+                    } else if (numValue < min) {
+                      field.onChange(min.toString());
+                      if (onValueChange) onValueChange(min.toString());
+                    } else {
+                      if (onValueChange) onValueChange(value);
+                    }
+                  } else {
+                    // Handle empty string case
+                    if (onValueChange) onValueChange("");
+                  }
+                }
+                // Ignore input if not a digit
+              }}
+              onBlur={(e) => {
+                // On blur, if empty or below min, set to min value
+                if (
+                  e.target.value === "" ||
+                  parseInt(e.target.value, 10) < min
+                ) {
+                  field.onChange(min.toString());
+                  if (onValueChange) onValueChange(min.toString());
+                }
+                field.onBlur(); // We need to call onBlur to trigger validation
+              }}
             />
           </FormControl>
           <FormMessage />

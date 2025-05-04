@@ -1,12 +1,6 @@
 import { RadioGroup } from "../ui/radio-group";
 import { RadioGroupItem } from "../ui/radio-group";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { HolidayFormValues } from "./HolidayForm";
 import { Control } from "react-hook-form";
 import { useHolidayForm } from "@/context/FormContext";
@@ -14,7 +8,6 @@ import { useHolidayForm } from "@/context/FormContext";
 interface RadioGroupFormFieldProps {
   control: Control<HolidayFormValues>;
   formFieldName: "selectedTypeOfHoliday";
-  label: string;
   themeColor: string;
   options: {
     value: string;
@@ -26,21 +19,18 @@ interface RadioGroupFormFieldProps {
 
 export function RadioGroupFormField({
   control,
-  label,
   options,
   formFieldName,
   themeColor,
 }: RadioGroupFormFieldProps) {
-  const { updateStrategy, strategy } = useHolidayForm();
+  const { updateStrategy, state } = useHolidayForm();
+  const strategy = state.strategy;
   return (
     <FormField
       control={control}
       name={formFieldName}
       render={({ field }) => (
         <FormItem className="space-y-3">
-          <FormLabel className="font-bold text-muted-foreground">
-            {label}
-          </FormLabel>
           <FormControl>
             <RadioGroup
               onValueChange={(val) => {
@@ -48,17 +38,17 @@ export function RadioGroupFormField({
                 field.onChange(val);
               }}
               value={field.value}
-              className="grid gap-3"
+              className="grid gap-2"
             >
               {options.map((option) => {
                 const Icon = option.icon;
                 return (
                   /*Added label so we're able to make our Radiogroup options be selected when clicking on the whole card */
-                  /* Conditionally apply hover effect when it's not selected, to have a visual effect when you select it. Very clean  */
+                  /* Conditionally apply hover effect when it's not selected, to have a visual effect when you select it. Very clean :)  */
                   <label
                     key={option.value}
                     htmlFor={option.value}
-                    className={`relative flex items-center gap-4 rounded-lg border-2 p-4 cursor-pointer 
+                    className={`relative flex items-center gap-4 rounded-lg border-2 p-2 cursor-pointer 
                       transition-all  ${
                         option.value === strategy ? `border-${themeColor} ` : ""
                       } ${
@@ -85,11 +75,11 @@ export function RadioGroupFormField({
                     </div>
                     <div className="flex flex-col gap-1 text-muted-foreground">
                       <span
-                        className={`flex items-center text-sm font-semibold text-${themeColor}`}
+                        className={`flex items-center text-sm font-bold text-${themeColor}`}
                       >
                         {option.label}
                       </span>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {option.description}
                       </span>
                     </div>

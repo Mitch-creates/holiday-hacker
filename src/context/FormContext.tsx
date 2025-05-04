@@ -1,23 +1,43 @@
-import { createContext, useContext, useReducer } from "react";
+import { useHolidays } from "@/hooks/useHolidays";
+import { HolidaysTypes } from "date-holidays";
+import { createContext, useContext, useEffect, useReducer } from "react";
 
-const FormContext = createContext();
+// Design choice between keeping track of just the deleted holidays and the raw public holidays or an array derived from the public holidays of that country/region and make it modifiable
 
-const initialState: FormState = {
-  userHolidays: "",
-  strategy: "",
-  holidays: [],
-  companyDaysOff: [],
-  error: "",
-};
+interface FormContextType {
+  state: FormState;
+  updateUserHolidays: (userHolidays: string) => void;
+  updateStrategy: (strategy: string) => void;
+  updateSelectedCountry: (country: string) => void;
+  updateSelectedRegion: (region: string) => void;
+  setHolidays: (holidays: HolidaysTypes.Holiday[]) => void;
+  deleteHoliday: (date: string) => void;
+  resetHolidays: () => void;
+}
+
+const FormContext = createContext<FormContextType | undefined>(undefined);
 
 interface FormState {
   userHolidays: string;
   strategy: string;
-  holidays: object[];
+  selectedCountry: string;
+  selectedRegion: string;
+  rawHolidays: HolidaysTypes.Holiday[];
+  deletedHolidays: string[];
   companyDaysOff: object[];
   error: string;
 }
-// TODO Check if this whole things works as expected when. I want to set the fields of the form before we actually submit to make changing styles easier.
+//Add the option pick a year for the holidays
+const initialState: FormState = {
+  userHolidays: "",
+  strategy: "",
+  rawHolidays: [],
+  companyDaysOff: [],
+  deletedHolidays: [],
+  selectedCountry: "",
+  selectedRegion: "",
+  error: "",
+};
 type SetFieldActions = {
   [K in keyof FormState]: {
     type: "SET_FIELD";
@@ -25,8 +45,17 @@ type SetFieldActions = {
     value: FormState[K];
   };
 }[keyof FormState];
+type DeleteHolidayAction = {
+  type: "DELETE_HOLIDAY";
+  date: string;
+};
+type ResetHolidaysAction = { type: "RESET_HOLIDAYS" };
 
-export type FormAction = SetFieldActions | { type: "RESET" };
+export type FormAction =
+  | SetFieldActions
+  | DeleteHolidayAction
+  | ResetHolidaysAction
+  | { type: "RESET" };
 
 function reducer(state: FormState, action: FormAction) {
   switch (action.type) {
@@ -36,17 +65,27 @@ function reducer(state: FormState, action: FormAction) {
         ...state,
         [action.field]: action.value,
       };
+    case "DELETE_HOLIDAY":
+      return {
+        ...state,
+        deletedHolidays: Array.from(
+          new Set([...state.deletedHolidays, action.date])
+        ),
+      };
+
+    case "RESET_HOLIDAYS":
+      return {
+        ...state,
+        deletedHolidays: [],
+      };
 
     default:
       throw new Error("Unknown action type");
   }
 }
 
-function FormProvider({ children }) {
-  const [{ userHolidays, strategy }, dispatch] = useReducer(
-    reducer,
-    initialState
-  );
+export function FormProvider({ children }: { children: React.ReactNode }) {
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   function updateUserHolidays(userHolidays: string) {
     dispatch({ type: "SET_FIELD", field: "userHolidays", value: userHolidays });
@@ -54,27 +93,68 @@ function FormProvider({ children }) {
   function updateStrategy(strategy: string) {
     dispatch({ type: "SET_FIELD", field: "strategy", value: strategy });
   }
+  function updateSelectedCountry(country: string) {
+    dispatch({ type: "SET_FIELD", field: "selectedCountry", value: country });
+  }
+  function updateSelectedRegion(region: string) {
+    dispatch({ type: "SET_FIELD", field: "selectedRegion", value: region });
+  }
+  function deleteHoliday(date: string) {
+    dispatch({ type: "DELETE_HOLIDAY", date });
+  }
+
+  function resetHolidays() {
+    dispatch({ type: "RESET_HOLIDAYS" });
+  }
+
+  const holidays: HolidaysTypes.Holiday[] = useHolidays(
+    new Date().getFullYear(),
+    state.selectedCountry,
+    state.selectedRegion
+  );
+
+  useEffect(() => {
+    if (state.selectedCountry) {
+      dispatch({
+        type: "SET_FIELD",
+        field: "selectedRegion",
+        value: "default",
+      });
+      resetHolidays();
+    }
+  }, [state.selectedCountry]);
+
+  useEffect(() => {
+    if (state.selectedCountry && state.selectedRegion) {
+      dispatch({
+        type: "SET_FIELD",
+        field: "rawHolidays",
+        value: holidays,
+      });
+      resetHolidays();
+    }
+  }, [state.selectedCountry, state.selectedRegion, holidays]);
 
   return (
     <FormContext.Provider
       value={{
+        state,
         updateUserHolidays: updateUserHolidays,
-        userHolidays: userHolidays,
         updateStrategy: updateStrategy,
-        strategy: strategy,
+        updateSelectedCountry: updateSelectedCountry,
+        updateSelectedRegion: updateSelectedRegion,
+        deleteHoliday: deleteHoliday,
+        resetHolidays: resetHolidays,
       }}
     >
-      {" "}
-      {children}{" "}
+      {children}
     </FormContext.Provider>
   );
 }
 
-function useHolidayForm() {
+export function useHolidayForm() {
   const context = useContext(FormContext);
   if (context === undefined)
     throw new Error("FormContext was used outside the Form Provider");
   return context;
 }
-
-export { FormProvider, useHolidayForm };
