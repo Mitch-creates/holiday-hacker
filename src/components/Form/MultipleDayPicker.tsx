@@ -1,38 +1,25 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker, getDefaultClassNames } from "react-day-picker";
+import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { useHolidayForm, CompanyHoliday } from "@/context/FormContext";
 import { isBefore } from "date-fns";
 
-const months = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
 const year = "2025";
 
-interface MonthProps {
-  showMonthNav: boolean;
+// TODO Add logic when a user still manages to select a day in the past or next year
+
+interface MultipleDayPickerProps {
   showOutsideDays?: boolean;
+  themeColor: string;
 }
 
 export default function MultipleDayPicker({
-  showMonthNav,
   showOutsideDays,
-}: MonthProps) {
+  themeColor,
+}: MultipleDayPickerProps) {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [selectedDays, setSelectedDays] = useState<Date[]>([]);
   const { state, updateCompanyHolidays } = useHolidayForm();
@@ -79,18 +66,20 @@ export default function MultipleDayPicker({
     return isDateInThePast(date) || isDateFromNextYear(date);
   };
 
-  const isDisabledMonth = (month: string) => {
-    // Check if the month is in the past or next year
-    const monthIndex = months.indexOf(month);
-    const monthDate = new Date(selectedMonth.getFullYear(), monthIndex, 1);
-    return isDateInThePast(monthDate) || isDateFromNextYear(monthDate);
-  };
-
   function goToPreviousMonth(event: React.MouseEvent) {
     event.preventDefault();
     const newDate = new Date(selectedMonth);
-    if (!isDateInThePast(newDate)) {
-      newDate.setMonth(newDate.getMonth() - 1);
+    newDate.setMonth(newDate.getMonth() - 1);
+
+    // Check if the entire month would be in the past
+    const currentMonth = new Date();
+    currentMonth.setDate(1); // First day of current month
+
+    if (
+      newDate.getFullYear() > currentMonth.getFullYear() ||
+      (newDate.getFullYear() === currentMonth.getFullYear() &&
+        newDate.getMonth() >= currentMonth.getMonth())
+    ) {
       handleMonthChange(newDate);
     }
   }
@@ -98,49 +87,26 @@ export default function MultipleDayPicker({
   function goToNextMonth(event: React.MouseEvent) {
     event.preventDefault();
     const newDate = new Date(selectedMonth);
-    if (!isDateFromNextYear(newDate)) {
-      newDate.setMonth(newDate.getMonth() + 1);
+    newDate.setMonth(newDate.getMonth() + 1);
+
+    // Check if the month would be in the next year
+    const nextYearStart = new Date(new Date().getFullYear() + 1, 0, 1);
+
+    if (newDate < nextYearStart) {
       handleMonthChange(newDate);
     }
   }
 
   return (
-    <div className="w-full mx-auto">
-      {showMonthNav && (
-        <div className="grid grid-cols-6 gap-1 mb-4 w-full">
-          {months.map((monthName, index) => {
-            const isActive = selectedMonth.getMonth() === index;
-            return (
-              <button
-                key={monthName}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (isDisabledMonth(monthName)) return;
-                  const newDate = new Date(selectedMonth);
-                  newDate.setMonth(index);
-                  handleMonthChange(newDate);
-                }}
-                className={cn(
-                  "text-sm py-1 px-2 rounded-md",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary hover:bg-secondary/80"
-                )}
-              >
-                {monthName}
-              </button>
-            );
-          })}
-        </div>
-      )}
-      <div className="flex items-center justify-between text-sm font-medium text-muted-foreground mb-2">
+    <div className="w-full mx-auto border rounded-md bg-background shadow-sm">
+      <div className="flex items-center justify-between text-sm font-medium text-muted-foreground mb-2 pt-3 pl-5 pr-5">
         <button
           onClick={goToPreviousMonth}
           className="text-muted-foreground hover:text-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="font-medium">{`${
+        <span className={`text-${themeColor}`}>{`${
           // get full month name from selectedMonth
           selectedMonth.toLocaleString("default", {
             month: "long",
@@ -155,6 +121,7 @@ export default function MultipleDayPicker({
       </div>
       <div className="relative w-full">
         <DayPicker
+          mode="multiple"
           month={selectedMonth}
           onMonthChange={handleMonthChange}
           showOutsideDays={showOutsideDays}
@@ -172,26 +139,18 @@ export default function MultipleDayPicker({
             table: "w-full border-collapse",
             nav: "hidden",
             head_row: "flex w-full",
-            head_cell:
-              "text-muted-foreground rounded-md w-[14.28%] font-normal text-[0.8rem]",
+            head_cell: `text-${themeColor} w-[14.28%] font-normal text-[0.8rem] border-b border-${themeColor}/50 pb-1 uppercase`,
             row: "flex w-full mt-2",
-            cell: "flex items-center justify-center w-[14.28%] h-8 rounded-md",
+            cell: "flex items-center justify-center w-[14.28%] h-8 rounded-md cursor-pointer",
             day: cn(
               buttonVariants({ variant: "ghost" }),
-              "size-8 p-0 font-normal aria-selected:opacity-100 pointer-events-auto"
+              `size-8 p-0 font-normal aria-selected:opacity-100 hover:bg-${themeColor}/10`
             ),
-            day_range_start:
-              "day-range-start aria-selected:bg-primary aria-selected:text-primary-foreground",
-            day_range_end:
-              "day-range-end aria-selected:bg-primary aria-selected:text-primary-foreground",
-            day_selected:
-              "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-            day_today: "bg-accent text-accent-foreground",
+            day_selected: `bg-${themeColor}/70 text-primary-foreground hover:bg-${themeColor}/70 hover:text-primary-foreground focus:bg-${themeColor}/70 focus:text-primary-foreground`,
+            day_today: `bg-${themeColor}/10 text-accent-foreground`,
             day_outside:
               "day-outside text-muted-foreground aria-selected:text-muted-foreground",
             day_disabled: "text-muted-foreground opacity-50",
-            day_range_middle:
-              "aria-selected:bg-accent aria-selected:text-accent-foreground",
             day_hidden: "invisible",
           }}
         ></DayPicker>

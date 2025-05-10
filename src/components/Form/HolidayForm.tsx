@@ -5,7 +5,7 @@ import { Form } from "../ui/form";
 import { Button } from "../ui/button";
 import InputNumberFormField from "./InputNumberFormField";
 import { RadioGroupFormField } from "./RadioGroupFormField";
-import { CompanyHoliday, useHolidayForm } from "@/context/FormContext";
+import { useHolidayForm } from "@/context/FormContext";
 import { FormStepBox } from "./FormStepBox";
 import { clsx } from "clsx";
 import {
@@ -14,17 +14,13 @@ import {
   CalendarClock,
   CalendarRange,
   TreePalm,
-  Delete,
-  Trash,
   Trash2,
   X,
   Check,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
-import { HolidaysTypes } from "date-holidays";
 import { ModifyHolidays } from "./ModifyHolidays";
-import { Calendar } from "../ui/calendar";
 import FormContainer from "./FormContainer";
 import MultipleDayPicker from "./MultipleDayPicker";
 import { formatDate } from "@/lib/utils";
@@ -224,7 +220,7 @@ export function HolidayForm() {
             themeColor1="theme-7"
             themeColor2="theme-8"
           >
-            <MultipleDayPicker showMonthNav={true} showOutsideDays={true} />
+            <MultipleDayPicker themeColor="theme-7" showOutsideDays={true} />
             {/* TODO */}
             <ul className="list-disc space-y-2 mt-4">
               {state.companyHolidays.map((holiday, index) => (

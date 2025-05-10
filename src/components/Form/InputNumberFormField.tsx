@@ -2,8 +2,6 @@ import { Input } from "../ui/input";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Control } from "react-hook-form";
 import { HolidayFormValues } from "./HolidayForm";
-import { useState } from "react";
-import { useHolidayForm } from "@/context/FormContext";
 
 interface InputNumberFormFieldProps {
   control: Control<HolidayFormValues>;
