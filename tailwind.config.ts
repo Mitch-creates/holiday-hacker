@@ -45,6 +45,14 @@ module.exports = {
     "bg-theme-6/10",
     "bg-theme-7/10",
     "bg-theme-8/10",
+    "bg-theme-1/70",
+    "bg-theme-2/70",
+    "bg-theme-3/70",
+    "bg-theme-4/70",
+    "bg-theme-5/70",
+    "bg-theme-6/70",
+    "bg-theme-7/70",
+    "bg-theme-8/70",
 
     "border-theme-1/50",
     "border-theme-2/50",
@@ -106,6 +114,7 @@ module.exports = {
     "hover:bg-theme-6/70",
     "hover:bg-theme-7/70",
     "hover:bg-theme-8/70",
+
     "focus:border-theme-1",
     "focus:border-theme-2",
     "focus:border-theme-3",

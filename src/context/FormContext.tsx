@@ -1,6 +1,12 @@
 import { useHolidays } from "@/hooks/useHolidays";
 import { HolidaysTypes } from "date-holidays";
-import { createContext, useContext, useEffect, useReducer } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+} from "react";
 
 interface FormContextType {
   state: FormState;
@@ -110,13 +116,16 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   function updateSelectedRegion(region: string) {
     dispatch({ type: "SET_FIELD", field: "selectedRegion", value: region });
   }
-  function updateCompanyHolidays(companyHolidays: CompanyHoliday[]) {
-    dispatch({
-      type: "SET_FIELD",
-      field: "companyHolidays",
-      value: companyHolidays,
-    });
-  }
+  const updateCompanyHolidays = useCallback(
+    (companyHolidays: CompanyHoliday[]) => {
+      dispatch({
+        type: "SET_FIELD",
+        field: "companyHolidays",
+        value: companyHolidays,
+      });
+    },
+    []
+  );
   function deleteHoliday(date: string) {
     dispatch({ type: "DELETE_HOLIDAY", date });
   }

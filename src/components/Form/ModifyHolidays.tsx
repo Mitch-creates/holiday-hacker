@@ -52,7 +52,7 @@ export function ModifyHolidays({
             <ul className="space-y-2">
               {modifiableHolidays?.map((holiday) => (
                 <li
-                  key={holiday.name}
+                  key={holiday.date}
                   className="flex items-center justify-between rounded-md border p-2"
                 >
                   <div>

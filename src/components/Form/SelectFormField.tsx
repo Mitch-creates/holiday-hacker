@@ -28,7 +28,6 @@ export default function SelectFormField({
   options,
   placeholder,
   selectLabel,
-  widthClassName = "w-full",
   themeColor1 = "theme-5",
   themeColor2 = "theme-6",
 }: SelectFormFieldProps) {
@@ -58,7 +57,6 @@ export default function SelectFormField({
                 rounded-md 
                 border border-${themeColor2}
                 text-${themeColor2} text-sm font-medium
-                hover:bg-${themeColor1}/70
                 hover:border-${themeColor1}
                 focus:ring-1 focus:ring-${themeColor2}
                 focus:outline-none
