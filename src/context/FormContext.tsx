@@ -15,7 +15,7 @@ interface FormContextType {
   resetHolidays: () => void;
 }
 
-interface CompanyHoliday {
+export interface CompanyHoliday {
   name: string;
   date: Date;
 }

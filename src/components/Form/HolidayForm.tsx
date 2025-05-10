@@ -5,7 +5,7 @@ import { Form } from "../ui/form";
 import { Button } from "../ui/button";
 import InputNumberFormField from "./InputNumberFormField";
 import { RadioGroupFormField } from "./RadioGroupFormField";
-import { useHolidayForm } from "@/context/FormContext";
+import { CompanyHoliday, useHolidayForm } from "@/context/FormContext";
 import { FormStepBox } from "./FormStepBox";
 import { clsx } from "clsx";
 import {
@@ -14,6 +14,11 @@ import {
   CalendarClock,
   CalendarRange,
   TreePalm,
+  Delete,
+  Trash,
+  Trash2,
+  X,
+  Check,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
@@ -21,6 +26,9 @@ import { HolidaysTypes } from "date-holidays";
 import { ModifyHolidays } from "./ModifyHolidays";
 import { Calendar } from "../ui/calendar";
 import FormContainer from "./FormContainer";
+import MultipleDayPicker from "./MultipleDayPicker";
+import { formatDate } from "@/lib/utils";
+import { useState } from "react";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -95,8 +103,17 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const { updateFormContent, updateUserHolidays, updateCompany, state } =
-    useHolidayForm();
+  const {
+    updateFormContent,
+    updateCompanyHolidays,
+    updateUserHolidays,
+    updateCompany,
+    state,
+  } = useHolidayForm();
+  const [editingHolidayIndex, setEditingHolidayIndex] = useState<number | null>(
+    null
+  );
+  const [editValue, setEditValue] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -121,6 +138,22 @@ export function HolidayForm() {
     // Update the context with the new value
     updateUserHolidays(value);
   }
+
+  const confirmEdit = (index: number) => {
+    if (editingHolidayIndex === index) {
+      const updatedHolidays = [...state.companyHolidays];
+      updatedHolidays[index] = {
+        ...state.companyHolidays[index],
+        name: editValue,
+      };
+      updateCompanyHolidays(updatedHolidays);
+      setEditingHolidayIndex(null);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingHolidayIndex(null);
+  };
 
   return (
     <Form {...form}>
@@ -191,7 +224,86 @@ export function HolidayForm() {
             themeColor1="theme-7"
             themeColor2="theme-8"
           >
-            <Calendar mode="multiple"></Calendar>
+            <MultipleDayPicker showMonthNav={true} showOutsideDays={true} />
+            {/* TODO */}
+            <ul className="list-disc space-y-2 mt-4">
+              {state.companyHolidays.map((holiday, index) => (
+                <li
+                  key={holiday.date.getTime()}
+                  className="flex items-center gap-2"
+                >
+                  {editingHolidayIndex === index ? (
+                    // Editing mode
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="text"
+                        autoFocus
+                        value={editValue}
+                        placeholder="Enter holiday name"
+                        className="border-b border-theme-8 focus:border-theme-8 focus:outline-none bg-transparent text-sm py-1"
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            confirmEdit(index);
+                          } else if (e.key === "Escape") {
+                            e.preventDefault();
+                            cancelEdit();
+                          }
+                        }}
+                      />
+                      <button
+                        className="text-green-600 hover:text-green-700 p-1"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          confirmEdit(index);
+                        }}
+                        title="Save"
+                      >
+                        <Check className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-700 p-1"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          cancelEdit();
+                        }}
+                        title="Cancel"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    // Display mode
+                    <div
+                      className="border-b border-transparent hover:border-gray-300 cursor-pointer py-1 px-1"
+                      onClick={() => {
+                        setEditingHolidayIndex(index);
+                        setEditValue(holiday.name);
+                      }}
+                    >
+                      {holiday.name || "Click to add name"}
+                    </div>
+                  )}
+                  <span className="text-muted-foreground">
+                    {formatDate(holiday.date)}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // Call the delete function from the context
+                      updateCompanyHolidays(
+                        state.companyHolidays.filter(
+                          (h) => h.date !== holiday.date
+                        )
+                      );
+                    }}
+                  >
+                    <Trash2></Trash2>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </FormStepBox>
 
           <Button type="submit">Submit</Button>
