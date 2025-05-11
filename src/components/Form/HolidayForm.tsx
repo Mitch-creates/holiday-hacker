@@ -240,7 +240,7 @@ export function HolidayForm() {
                               type="text"
                               autoFocus
                               value={editValue}
-                              placeholder="Enter holiday name"
+                              placeholder="Enter Company Holiday Name"
                               className="border-b border-muted-foreground focus:border-theme-8 focus:outline-none bg-transparent text-xs font-medium py-1"
                               onChange={(e) => setEditValue(e.target.value)}
                               onKeyDown={(e) => {
@@ -276,17 +276,20 @@ export function HolidayForm() {
                           </div>
                         ) : (
                           // Display mode
+
                           <div
-                            className="flex items-center border-b border-transparent hover:border-gray-300 cursor-pointer text-xs font-medium group"
+                            className="flex items-center  cursor-pointer text-xs font-medium group"
                             onClick={() => {
                               setEditingHolidayIndex(index);
                               setEditValue(holiday.name);
                             }}
                           >
-                            <span>{holiday.name || "Click to add name"}</span>
-                            <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Pen className="inline h-3 w-3 pb-0.5" />
-                            </span>
+                            <div className="border-b border-transparent hover:border-gray-300">
+                              <span>{holiday.name || "Click to add name"}</span>
+                              <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Pen className="inline h-3 w-3 pb-0.5" />
+                              </span>
+                            </div>
                           </div>
                         )}
                         <span className="text-xs text-muted-foreground">
