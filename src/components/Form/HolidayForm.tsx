@@ -22,6 +22,7 @@ import { ModifyHolidays } from "./ModifyHolidays";
 import FormContainer from "./FormContainer";
 import MultipleDayPicker from "./MultipleDayPicker";
 import { ModifyCompanyHolidays } from "./ModifyCompanyHolidays";
+import { useState } from "react";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -102,6 +103,7 @@ export function HolidayForm() {
     updateUserHolidays,
     state,
   } = useHolidayForm();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -114,12 +116,17 @@ export function HolidayForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsGenerating(true);
     // const newFormContent = {
     //   userHolidays: values.userHolidays,
     //   selectedTypeOfHoliday: values.selectedTypeOfHoliday,
     // };
     // updateFormContent(newFormContent);
-    console.log(values);
+    setTimeout(() => {
+      console.log(values);
+      setIsGenerating(false);
+      // Your actual form submission logic
+    }, 2500); // Adjust timing as needed
   }
 
   function handleUserHolidaysChange(value: string) {
@@ -209,8 +216,22 @@ export function HolidayForm() {
               type="submit"
               className="w-full max-w-[300px] bg-blue-400 text-white cursor-pointer hover:bg-blue-500 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Wand className="w-5 h-5 text-white" />
-              Generate result
+              <span
+                className={`flex items-center gap-2 ${
+                  isGenerating ? "opacity-80" : ""
+                }`}
+              >
+                <Wand
+                  className={`w-5 h-5 text-white ${
+                    isGenerating ? "wand-casting" : ""
+                  }`}
+                />
+                {isGenerating ? "Generating..." : "Generate result"}
+              </span>
+
+              {isGenerating && (
+                <span className="magic-particles" aria-hidden="true"></span>
+              )}
             </Button>
           </div>
         </form>
