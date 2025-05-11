@@ -1,38 +1,51 @@
 import { useHolidays } from "@/hooks/useHolidays";
 import { HolidaysTypes } from "date-holidays";
-import { createContext, useContext, useEffect, useReducer } from "react";
-
-// Design choice between keeping track of just the deleted holidays and the raw public holidays or an array derived from the public holidays of that country/region and make it modifiable
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useReducer,
+} from "react";
 
 interface FormContextType {
   state: FormState;
   updateUserHolidays: (userHolidays: string) => void;
+  updateYear: (year: string) => void;
   updateStrategy: (strategy: string) => void;
   updateSelectedCountry: (country: string) => void;
   updateSelectedRegion: (region: string) => void;
+  updateCompanyHolidays: (companyHolidays: CompanyHoliday[]) => void;
   setHolidays: (holidays: HolidaysTypes.Holiday[]) => void;
   deleteHoliday: (date: string) => void;
   resetHolidays: () => void;
+}
+
+export interface CompanyHoliday {
+  name: string;
+  date: Date;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
 
 interface FormState {
   userHolidays: string;
+  year: string;
   strategy: string;
   selectedCountry: string;
   selectedRegion: string;
   rawHolidays: HolidaysTypes.Holiday[];
   deletedHolidays: string[];
-  companyDaysOff: object[];
+  companyHolidays: CompanyHoliday[];
   error: string;
 }
-//Add the option pick a year for the holidays
+
 const initialState: FormState = {
   userHolidays: "",
+  year: new Date().getFullYear().toString(),
   strategy: "",
   rawHolidays: [],
-  companyDaysOff: [],
+  companyHolidays: [],
   deletedHolidays: [],
   selectedCountry: "",
   selectedRegion: "",
@@ -87,6 +100,10 @@ function reducer(state: FormState, action: FormAction) {
 export function FormProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  function updateYear(year: string) {
+    dispatch({ type: "SET_FIELD", field: "year", value: year });
+  }
+
   function updateUserHolidays(userHolidays: string) {
     dispatch({ type: "SET_FIELD", field: "userHolidays", value: userHolidays });
   }
@@ -99,6 +116,16 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   function updateSelectedRegion(region: string) {
     dispatch({ type: "SET_FIELD", field: "selectedRegion", value: region });
   }
+  const updateCompanyHolidays = useCallback(
+    (companyHolidays: CompanyHoliday[]) => {
+      dispatch({
+        type: "SET_FIELD",
+        field: "companyHolidays",
+        value: companyHolidays,
+      });
+    },
+    []
+  );
   function deleteHoliday(date: string) {
     dispatch({ type: "DELETE_HOLIDAY", date });
   }
@@ -108,7 +135,7 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   }
 
   const holidays: HolidaysTypes.Holiday[] = useHolidays(
-    new Date().getFullYear(),
+    Number(state.year),
     state.selectedCountry,
     state.selectedRegion
   );
@@ -139,10 +166,12 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
     <FormContext.Provider
       value={{
         state,
+        updateYear: updateYear,
         updateUserHolidays: updateUserHolidays,
         updateStrategy: updateStrategy,
         updateSelectedCountry: updateSelectedCountry,
         updateSelectedRegion: updateSelectedRegion,
+        updateCompanyHolidays: updateCompanyHolidays,
         deleteHoliday: deleteHoliday,
         resetHolidays: resetHolidays,
       }}

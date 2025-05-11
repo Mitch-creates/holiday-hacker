@@ -11,6 +11,8 @@ export default function RegionSelect({
   themeColor2,
 }: {
   control: Control<HolidayFormValues>;
+  themeColor1: string;
+  themeColor2: string;
 }) {
   const { updateSelectedRegion, state } = useHolidayForm();
   const regionOptions = mapToOptions(useRegions(state.selectedCountry)).sort(

@@ -2,8 +2,6 @@ import { Input } from "../ui/input";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Control } from "react-hook-form";
 import { HolidayFormValues } from "./HolidayForm";
-import { useState } from "react";
-import { useHolidayForm } from "@/context/FormContext";
 
 interface InputNumberFormFieldProps {
   control: Control<HolidayFormValues>;
@@ -77,7 +75,7 @@ export default function InputNumberFormField({
                   field.onChange(min.toString());
                   if (onValueChange) onValueChange(min.toString());
                 }
-                field.onBlur(); // We need to call onBlur to trigger validation
+                field.onBlur(); // We need to call onBlur to trigger validation for React Hook Form
               }}
             />
           </FormControl>

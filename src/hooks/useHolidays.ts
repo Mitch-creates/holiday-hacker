@@ -31,10 +31,20 @@ export function useHolidays(year: number, country: string, region?: string) {
           hd.init(country, region);
         }
       }
+      // Make sure that each holiday's date is unique
       const holidays = hd
         .getHolidays(year)
         .filter((holiday) => holiday.type === "public");
-      return holidays;
+      const uniqueHolidays = new Set();
+      const holidaysWithUniqueDates = holidays.filter((holiday) => {
+        const date = new Date(holiday.date).toDateString();
+        if (uniqueHolidays.has(date)) {
+          return false; // Skip this holiday if the date is already in the set
+        }
+        uniqueHolidays.add(date);
+        return true; // Include this holiday
+      });
+      return holidaysWithUniqueDates;
     } catch (error) {
       console.error("Error initializing holidays:", error);
       return [];

@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 import InputNumberFormField from "./InputNumberFormField";
 import { RadioGroupFormField } from "./RadioGroupFormField";
 import { useHolidayForm } from "@/context/FormContext";
-import { FormStepBox } from "./StepBox";
+import { FormStepBox } from "./FormStepBox";
 import { clsx } from "clsx";
 import {
   GanttChart,
@@ -14,11 +14,20 @@ import {
   CalendarClock,
   CalendarRange,
   TreePalm,
+  Trash2,
+  X,
+  Check,
+  Edit,
+  Edit3,
+  Pen,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
-import { HolidaysTypes } from "date-holidays";
 import { ModifyHolidays } from "./ModifyHolidays";
+import FormContainer from "./FormContainer";
+import MultipleDayPicker from "./MultipleDayPicker";
+import { formatDate } from "@/lib/utils";
+import { useState } from "react";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -93,7 +102,16 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const { updateFormContent, updateUserHolidays, state } = useHolidayForm();
+  const {
+    updateFormContent,
+    updateCompanyHolidays,
+    updateUserHolidays,
+    state,
+  } = useHolidayForm();
+  const [editingHolidayIndex, setEditingHolidayIndex] = useState<number | null>(
+    null
+  );
+  const [editValue, setEditValue] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -119,67 +137,189 @@ export function HolidayForm() {
     updateUserHolidays(value);
   }
 
+  const confirmEdit = (index: number) => {
+    if (editingHolidayIndex === index) {
+      const updatedHolidays = [...state.companyHolidays];
+      updatedHolidays[index] = {
+        ...state.companyHolidays[index],
+        name: editValue,
+      };
+      updateCompanyHolidays(updatedHolidays);
+      setEditingHolidayIndex(null);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingHolidayIndex(null);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormStepBox
-          stepIcon={
-            <StepNumberIcon color="theme-1" textColor="theme-2" number={1} />
-          }
-          title="Enter Your Number Of Holidays"
-          label="How many paid days off do you have?"
-          tooltip="Include only official holidays, not sick days or unpaid leave."
-          themeColor1="theme-1"
-          themeColor2="theme-2"
-        >
-          <InputNumberFormField
-            control={form.control}
-            formFieldName="userHolidays"
-            placeholder="e.g. 20"
-            themeColor="theme-1"
-            min={1}
-            max={365}
-            onValueChange={handleUserHolidaysChange}
-          />
-        </FormStepBox>
-        <FormStepBox
-          stepIcon={
-            <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />
-          }
-          title="Choose Type Of Holidays"
-          label="What type of holidays do you prefer?"
-          tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
-          themeColor1="theme-3"
-          themeColor2="theme-4"
-        >
-          <RadioGroupFormField
-            control={form.control}
-            formFieldName="selectedTypeOfHoliday"
-            options={radioOptions}
-            themeColor="theme-4"
-          />
-        </FormStepBox>
-        <FormStepBox
-          stepIcon={
-            <StepNumberIcon color="theme-5" textColor="theme-6" number={3} />
-          }
-          title="Get Public Holidays"
-          label="Get the public holidays for 2025 by selecting your country, state, and region."
-          tooltip="Make sure that you're not accounting for these holidays in the first section, keep them seperate."
-          themeColor1="theme-5"
-          themeColor2="theme-6"
-        >
-          <div className="space-y-3">
-            <CountrySelect control={form.control} />
-            {form.watch("selectedCountry") && (
-              <RegionSelect control={form.control} />
-            )}
-          </div>
-          <ModifyHolidays themeColor="theme-6" />
-        </FormStepBox>
+      <FormContainer title="Holiday planner">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <FormStepBox
+            stepIcon={
+              <StepNumberIcon color="theme-1" textColor="theme-2" number={1} />
+            }
+            title="Enter Your Number Of Holidays"
+            label="How many paid days off do you have?"
+            tooltip="Include only official holidays, not sick days or unpaid leave."
+            themeColor1="theme-1"
+            themeColor2="theme-2"
+          >
+            <InputNumberFormField
+              control={form.control}
+              formFieldName="userHolidays"
+              placeholder="e.g. 20"
+              themeColor="theme-1"
+              min={1}
+              max={365}
+              onValueChange={handleUserHolidaysChange}
+            />
+          </FormStepBox>
+          <FormStepBox
+            stepIcon={
+              <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />
+            }
+            title="Choose Type Of Holidays"
+            label="What type of holidays do you prefer?"
+            tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
+            themeColor1="theme-3"
+            themeColor2="theme-4"
+          >
+            <RadioGroupFormField
+              control={form.control}
+              formFieldName="selectedTypeOfHoliday"
+              options={radioOptions}
+              themeColor="theme-4"
+            />
+          </FormStepBox>
+          <FormStepBox
+            stepIcon={
+              <StepNumberIcon color="theme-5" textColor="theme-6" number={3} />
+            }
+            title="Get Public Holidays"
+            label="Get the public holidays for 2025 by selecting your country, state, and region."
+            tooltip="Make sure that you're not accounting for these holidays in the first section, keep them seperate."
+            themeColor1="theme-5"
+            themeColor2="theme-6"
+          >
+            <div className="space-y-3">
+              <CountrySelect control={form.control} />
+              {form.watch("selectedCountry") && (
+                <RegionSelect control={form.control} />
+              )}
+            </div>
+            <ModifyHolidays themeColor="theme-6" />
+          </FormStepBox>
+          <FormStepBox
+            stepIcon={
+              <StepNumberIcon color="theme-7" textColor="theme-8" number={4} />
+            }
+            title="Provide your company holidays"
+            label={`Provide your company's holidays for ${state.year} by selecting them from the calendar.`}
+            tooltip="After choosing your company's holidays, you can easily edit or delete them from the list."
+            themeColor1="theme-7"
+            themeColor2="theme-8"
+          >
+            <MultipleDayPicker themeColor="theme-7" showOutsideDays={true} />
 
-        <Button type="submit">Submit</Button>
-      </form>
+            {state.companyHolidays.length > 0 && (
+              <div className="rounded-md border p-4 mt-2">
+                <ul className="space-y-2">
+                  {state.companyHolidays.map((holiday, index) => (
+                    <li
+                      key={holiday.date.getTime()}
+                      className="flex items-center justify-between rounded-md border p-2"
+                    >
+                      <div>
+                        {editingHolidayIndex === index ? (
+                          // Editing mode
+                          <div className="flex items-center">
+                            <input
+                              type="text"
+                              autoFocus
+                              value={editValue}
+                              placeholder="Enter Company Holiday Name"
+                              className="border-b border-muted-foreground focus:border-theme-8 focus:outline-none bg-transparent text-xs font-medium py-1"
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  confirmEdit(index);
+                                } else if (e.key === "Escape") {
+                                  e.preventDefault();
+                                  cancelEdit();
+                                }
+                              }}
+                            />
+                            <button
+                              className="text-green-600 hover:text-green-700 P-1 cursor-pointer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                confirmEdit(index);
+                              }}
+                              title="Save"
+                            >
+                              <Check className="h-4 w-4" />
+                            </button>
+                            <button
+                              className="text-red-600 hover:text-red-700 p-1 cursor-pointer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                cancelEdit();
+                              }}
+                              title="Cancel"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          // Display mode
+
+                          <div
+                            className="flex items-center  cursor-pointer text-xs font-medium group"
+                            onClick={() => {
+                              setEditingHolidayIndex(index);
+                              setEditValue(holiday.name);
+                            }}
+                          >
+                            <div className="border-b border-transparent hover:border-gray-300">
+                              <span>{holiday.name || "Click to add name"}</span>
+                              <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Pen className="inline h-3 w-3 pb-0.5" />
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(new Date(holiday.date))}
+                        </span>
+                      </div>
+                      <Button
+                        variant="link"
+                        className="cursor-pointer text-red-700 outline text-sm font-normal ml-auto"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          updateCompanyHolidays(
+                            state.companyHolidays.filter(
+                              (h) => h.date !== holiday.date
+                            )
+                          );
+                        }}
+                      >
+                        <Trash2 className="w-3 h-3 " />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </FormStepBox>
+
+          <Button type="submit">Submit</Button>
+        </form>
+      </FormContainer>
     </Form>
   );
 }
