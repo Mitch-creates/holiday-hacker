@@ -14,6 +14,7 @@ import {
   CalendarClock,
   CalendarRange,
   TreePalm,
+  Wand,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
@@ -202,8 +203,16 @@ export function HolidayForm() {
             <MultipleDayPicker themeColor="theme-7" showOutsideDays={true} />
             <ModifyCompanyHolidays themeColor="theme-7" />
           </FormStepBox>
-
-          <Button type="submit">Submit</Button>
+          {/*Submit button */}
+          <div className="flex justify-center">
+            <Button
+              type="submit"
+              className="w-full max-w-[300px] bg-blue-400 text-white cursor-pointer hover:bg-blue-500 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Wand className="w-5 h-5 text-white" />
+              Generate result
+            </Button>
+          </div>
         </form>
       </FormContainer>
     </Form>
