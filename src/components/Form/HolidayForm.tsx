@@ -14,20 +14,13 @@ import {
   CalendarClock,
   CalendarRange,
   TreePalm,
-  Trash2,
-  X,
-  Check,
-  Edit,
-  Edit3,
-  Pen,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
 import { ModifyHolidays } from "./ModifyHolidays";
 import FormContainer from "./FormContainer";
 import MultipleDayPicker from "./MultipleDayPicker";
-import { formatDate } from "@/lib/utils";
-import { useState } from "react";
+import { ModifyCompanyHolidays } from "./ModifyCompanyHolidays";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -69,12 +62,12 @@ const StepNumberIcon = ({
 );
 
 const radioOptions = [
-  {
-    value: "mixItUp",
-    label: "Mix it up",
-    description: "A balanced mix of all types of holidays",
-    icon: GanttChart,
-  },
+  // {
+  //   value: "mixItUp",
+  //   label: "Mix it up",
+  //   description: "A balanced mix of all types of holidays",
+  //   icon: GanttChart,
+  // },
   {
     value: "longWeekend",
     label: "Long Weekends",
@@ -108,10 +101,6 @@ export function HolidayForm() {
     updateUserHolidays,
     state,
   } = useHolidayForm();
-  const [editingHolidayIndex, setEditingHolidayIndex] = useState<number | null>(
-    null
-  );
-  const [editValue, setEditValue] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -137,26 +126,11 @@ export function HolidayForm() {
     updateUserHolidays(value);
   }
 
-  const confirmEdit = (index: number) => {
-    if (editingHolidayIndex === index) {
-      const updatedHolidays = [...state.companyHolidays];
-      updatedHolidays[index] = {
-        ...state.companyHolidays[index],
-        name: editValue,
-      };
-      updateCompanyHolidays(updatedHolidays);
-      setEditingHolidayIndex(null);
-    }
-  };
-
-  const cancelEdit = () => {
-    setEditingHolidayIndex(null);
-  };
-
   return (
     <Form {...form}>
       <FormContainer title="Holiday planner">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* This FormStepbox is responsible for the input of the amount of holidays the user has */}
           <FormStepBox
             stepIcon={
               <StepNumberIcon color="theme-1" textColor="theme-2" number={1} />
@@ -177,6 +151,7 @@ export function HolidayForm() {
               onValueChange={handleUserHolidaysChange}
             />
           </FormStepBox>
+          {/* This FormStepbox is responsible for letting the user choose which kind of time off he'd like to be optmized by the app */}
           <FormStepBox
             stepIcon={
               <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />
@@ -194,6 +169,7 @@ export function HolidayForm() {
               themeColor="theme-4"
             />
           </FormStepBox>
+          {/* This FormStepbox is responsible for getting all holidays based on country and/or region and the option to modify that list */}
           <FormStepBox
             stepIcon={
               <StepNumberIcon color="theme-5" textColor="theme-6" number={3} />
@@ -212,6 +188,7 @@ export function HolidayForm() {
             </div>
             <ModifyHolidays themeColor="theme-6" />
           </FormStepBox>
+          {/* This FormStepbox is responsible for the company holidays (if applicable). The user can choose in a calender and modify that list later on, also being able to change the name of the company holiday */}
           <FormStepBox
             stepIcon={
               <StepNumberIcon color="theme-7" textColor="theme-8" number={4} />
@@ -223,98 +200,7 @@ export function HolidayForm() {
             themeColor2="theme-8"
           >
             <MultipleDayPicker themeColor="theme-7" showOutsideDays={true} />
-
-            {state.companyHolidays.length > 0 && (
-              <div className="rounded-md border p-4 mt-2">
-                <ul className="space-y-2">
-                  {state.companyHolidays.map((holiday, index) => (
-                    <li
-                      key={holiday.date.getTime()}
-                      className="flex items-center justify-between rounded-md border p-2"
-                    >
-                      <div>
-                        {editingHolidayIndex === index ? (
-                          // Editing mode
-                          <div className="flex items-center">
-                            <input
-                              type="text"
-                              autoFocus
-                              value={editValue}
-                              placeholder="Enter Company Holiday Name"
-                              className="border-b border-muted-foreground focus:border-theme-8 focus:outline-none bg-transparent text-xs font-medium py-1"
-                              onChange={(e) => setEditValue(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  confirmEdit(index);
-                                } else if (e.key === "Escape") {
-                                  e.preventDefault();
-                                  cancelEdit();
-                                }
-                              }}
-                            />
-                            <button
-                              className="text-green-600 hover:text-green-700 P-1 cursor-pointer"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                confirmEdit(index);
-                              }}
-                              title="Save"
-                            >
-                              <Check className="h-4 w-4" />
-                            </button>
-                            <button
-                              className="text-red-600 hover:text-red-700 p-1 cursor-pointer"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                cancelEdit();
-                              }}
-                              title="Cancel"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          // Display mode
-
-                          <div
-                            className="flex items-center  cursor-pointer text-xs font-medium group"
-                            onClick={() => {
-                              setEditingHolidayIndex(index);
-                              setEditValue(holiday.name);
-                            }}
-                          >
-                            <div className="border-b border-transparent hover:border-gray-300">
-                              <span>{holiday.name || "Click to add name"}</span>
-                              <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Pen className="inline h-3 w-3 pb-0.5" />
-                              </span>
-                            </div>
-                          </div>
-                        )}
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(new Date(holiday.date))}
-                        </span>
-                      </div>
-                      <Button
-                        variant="link"
-                        className="cursor-pointer text-red-700 outline text-sm font-normal ml-auto"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          updateCompanyHolidays(
-                            state.companyHolidays.filter(
-                              (h) => h.date !== holiday.date
-                            )
-                          );
-                        }}
-                      >
-                        <Trash2 className="w-3 h-3 " />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <ModifyCompanyHolidays themeColor="theme-7" />
           </FormStepBox>
 
           <Button type="submit">Submit</Button>

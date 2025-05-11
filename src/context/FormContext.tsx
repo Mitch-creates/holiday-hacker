@@ -43,7 +43,7 @@ interface FormState {
 const initialState: FormState = {
   userHolidays: "",
   year: new Date().getFullYear().toString(),
-  strategy: "",
+  strategy: "longWeekend",
   rawHolidays: [],
   companyHolidays: [],
   deletedHolidays: [],
