@@ -23,6 +23,7 @@ import FormContainer from "./FormContainer";
 import MultipleDayPicker from "./MultipleDayPicker";
 import { ModifyCompanyHolidays } from "./ModifyCompanyHolidays";
 import { useState } from "react";
+import { useFormResults } from "@/context/FormResultsContext";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -35,12 +36,9 @@ const formSchema = z.object({
     .int("Please enter a whole number")
     .min(1, "That number is too low")
     .max(365, "That number is too high"),
-  selectedTypeOfHoliday: z.enum(
-    ["longWeekend", "midWeek", "week", "extended"],
-    {
-      errorMap: () => ({ message: "Please select a type of holiday" }),
-    }
-  ),
+  strategy: z.enum(["longWeekend", "midWeek", "week", "extended"], {
+    errorMap: () => ({ message: "Please select a type of holiday" }),
+  }),
   selectedCountry: z.string().nonempty("Please select a country"),
   selectedRegion: z.string().default("default"),
 });
@@ -97,36 +95,44 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const {
-    updateFormContent,
-    updateCompanyHolidays,
-    updateUserHolidays,
-    state,
-  } = useHolidayForm();
+  const { updateUserHolidays, state } = useHolidayForm();
+  const { updateFormInputState } = useFormResults();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       userHolidays: 0,
-      selectedTypeOfHoliday: "longWeekend",
+      strategy: "longWeekend",
       selectedCountry: "",
       selectedRegion: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit() {
     setIsGenerating(true);
-    // const newFormContent = {
-    //   userHolidays: values.userHolidays,
-    //   selectedTypeOfHoliday: values.selectedTypeOfHoliday,
-    // };
-    // updateFormContent(newFormContent);
+
+    // Create a snapshot of the current state
+    const formSnapshot = {
+      userHolidays: state.userHolidays,
+      year: state.year,
+      strategy: state.strategy,
+      selectedCountry: state.selectedCountry,
+      selectedRegion: state.selectedRegion,
+      publicHolidays: state.rawHolidays.filter(
+        (holiday) => !state.deletedHolidays.includes(holiday.date)
+      ),
+      companyHolidays: state.companyHolidays,
+    };
+
     setTimeout(() => {
-      console.log(values);
-      setIsGenerating(false);
-      // Your actual form submission logic
-    }, 2500); // Adjust timing as needed
+      try {
+        // Pass the snapshot to results context
+        updateFormInputState(formSnapshot);
+      } finally {
+        setIsGenerating(false);
+      }
+    }, 2500);
   }
 
   function handleUserHolidaysChange(value: string) {

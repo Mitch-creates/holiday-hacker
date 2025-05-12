@@ -8,6 +8,8 @@ import {
   useReducer,
 } from "react";
 
+const FormContext = createContext<FormContextType | undefined>(undefined);
+
 interface FormContextType {
   state: FormState;
   updateUserHolidays: (userHolidays: string) => void;
@@ -25,8 +27,6 @@ export interface CompanyHoliday {
   name: string;
   date: Date;
 }
-
-const FormContext = createContext<FormContextType | undefined>(undefined);
 
 interface FormState {
   userHolidays: string;
@@ -116,6 +116,7 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
   function updateSelectedRegion(region: string) {
     dispatch({ type: "SET_FIELD", field: "selectedRegion", value: region });
   }
+
   const updateCompanyHolidays = useCallback(
     (companyHolidays: CompanyHoliday[]) => {
       dispatch({

@@ -8,6 +8,8 @@ export default function App() {
   return (
     <>
       <div
+        // This code makes sure that the form is always centered in the middle of the screen
+        // and that the form is always 100% width on mobile and 33.3333% width on desktop
         className={`flex min-h-screen px-4 py-8 ${
           hasGeneratedResult
             ? "flex-col lg:flex-row gap-8"
@@ -20,13 +22,13 @@ export default function App() {
             hasGeneratedResult
               ? "w-full lg:max-w-[33.3333%]"
               : "w-full max-w-xl"
-          } transition-all`}
+          } transition-all mb-8 lg:mb-0`}
         >
           <HolidayForm hasGeneratedResult={hasGeneratedResult}></HolidayForm>
         </div>
         {hasGeneratedResult && (
-          <div className="w-full lg:flex-1">
-            {/* Your generated results go here */}
+          <div className="w-full lg:flex-1 border p-4 rounded-2xl shadow-sm mb-6 bg-white space-y-2">
+            {/* My generated results go here */}
           </div>
         )}
       </div>
