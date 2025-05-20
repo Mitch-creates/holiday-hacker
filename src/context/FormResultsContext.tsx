@@ -2,34 +2,42 @@
 import { createContext, useContext, useReducer, useCallback } from "react";
 import { CompanyHoliday } from "./FormContext";
 import { HolidaysTypes } from "date-holidays";
+import {
+  calculateOptimizedHolidayPeriods,
+  StrategyType,
+} from "@/lib/holidayCalculations";
 
 // Create the context
 const FormResultsContext = createContext<FormResultsContextType | undefined>(
   undefined
 );
 
-// A single holiday period
+// A single day off
+export type DayOff =
+  | { date: Date; type: "PUBLIC_HOLIDAY"; name: string }
+  | { date: Date; type: "COMPANY_HOLIDAY"; name: string }
+  | { date: Date; type: "USER_HOLIDAY" }
+  | { date: Date; type: "WEEKEND" };
+
+// A single holiday period consisting of DayOffs
 export interface HolidayPeriod {
-  userHolidays: string;
   startDate: Date;
   endDate: Date;
-  description: string;
-  publicHolidays: HolidaysTypes.Holiday[];
-  companyHolidays: CompanyHoliday[];
-  selectedCountry: string;
-  selectedRegion: string;
-  year: string;
-  strategy: string;
-  vacationDaysUsed: number;
+  holidays: DayOff[];
+  type: "longWeekend" | "midWeek" | "week" | "extended";
+  userHolidaysUsed: number;
+  publicHolidaysUsed: number;
+  companyHolidaysUsed: number;
   weekendDays: number;
   totalDaysOff: number;
+  description?: string;
 }
 
 // The data that came from the Form Context
 interface FormInputState {
   userHolidays: string;
   year: string;
-  strategy: string;
+  strategy: StrategyType;
   selectedCountry: string;
   selectedRegion: string;
   publicHolidays: HolidaysTypes.Holiday[];
@@ -103,11 +111,7 @@ export function FormResultsProvider({
     dispatch({ type: "SET_LOADING" });
 
     try {
-      // Add a delay to simulate processing (remove this in production)
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Your calculation logic here
-      const calculatedResults = calculateOptimalHolidays(formData);
+      const calculatedResults = generateHolidayPeriods(formData);
 
       // Update state with results
       dispatch({ type: "SET_RESULTS", payload: calculatedResults });
@@ -129,19 +133,25 @@ export function FormResultsProvider({
       field: "formInputState",
       value: formInputState,
     });
+    dispatch({ type: "SET_FIELD", field: "status", value: "loading" });
+
+    dispatch({
+      type: "SET_FIELD",
+      field: "calculatedPeriods",
+      value: generateHolidayPeriods(formInputState),
+    });
   }
 
-  // Sample calculation function (replace with your actual logic)
-  function calculateOptimalHolidays(formData: any) {
-    // Implement your holiday calculation algorithm here
-    return [
-      {
-        start: new Date(2025, 3, 18),
-        end: new Date(2025, 3, 21),
-        description: "Easter holiday",
-      },
-      // More calculated holidays...
-    ];
+  function generateHolidayPeriods(formInputState: FormInputState) {
+    const periods: HolidayPeriod[] = calculateOptimizedHolidayPeriods(
+      formInputState.strategy,
+      formInputState.publicHolidays,
+      formInputState.companyHolidays,
+      Number(formInputState.userHolidays),
+      formInputState.year
+    );
+    console.log("Generated holiday periods:", periods);
+    return periods;
   }
   return (
     <FormResultsContext.Provider
