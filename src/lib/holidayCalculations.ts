@@ -44,19 +44,10 @@ const strategyMap: Record<StrategyType, StrategyFn> = {
 
 // ========== Helpers ==========
 
-function addDays(date: Date, n: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + n);
-  return d;
-}
-function isSameYear(date: Date, year: number): boolean {
-  return date.getFullYear() === year;
-}
 function toIso(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
-// ========== Strategy Implementations ==========
 // This is the main function that will be called for the long weekend strategy
 // Map both public and company holidays to a holiday
 // First get all longWeekends where the user can take 4 days off while only needing to use 1 user holiday
@@ -185,9 +176,28 @@ function combineHolidays(
     });
   }
 
-  return allHolidaysMap;
+  return purgeWeekends(allHolidaysMap);
+}
+// Delete weekends from the holidays map
+function purgeWeekends(holidays: Map<string, DayOff>): Map<string, DayOff> {
+  holidays.forEach((holiday, key) => {
+    const date = new Date(holiday.date);
+    if (date.getDay() === 0 || date.getDay() === 6) {
+      holidays.delete(key);
+    }
+  });
+  return holidays;
 }
 
+// This is the main function that will be called for the midweek strategy
+// Map both public and company holidays to a holiday
+// First get all midweek periods where the user can take 6 days off while only needing to use 2 or less user holidays, if any
+// For the remaining user holidays, get all midweek periods where the user can take 5 days off while only needing to use 1 user holiday
+// A midweek period is a 5 or 6-day period that has at least 2 weekend days
+// It shouldn't start on a monday or end on a friday
+// A holiday can be either a monday, tuesday, wednesday, thursday, or friday
+// If there is no 6 day period available, at least create one, even if it costs 3 user holidays
+// Calculate periods until all userHolidays have been used up
 function calculateMidweekPeriods(input: StrategyInput): HolidayPeriod[] {
   const { publicHolidays, companyHolidays, userHolidayCount, year, today } =
     input;
@@ -204,97 +214,155 @@ function calculateMidweekPeriods(input: StrategyInput): HolidayPeriod[] {
   const toIso = (d: Date) => d.toISOString().slice(0, 10);
   const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
 
-  interface Candidate {
-    periodDays: Date[];
-    userDays: number;
-    publicDays: number;
-    companyDays: number;
-    weekendDays: number;
-    holidayDays: number;
-  }
+  // Continue finding periods until all user holidays are used or no more valid periods exist
+  while (availableUserHolidays > 0) {
+    interface Candidate {
+      periodDays: Date[];
+      userDays: number;
+      publicDays: number;
+      companyDays: number;
+      weekendDays: number;
+      holidayDays: number;
+      length: number;
+      score: number; // Higher is better
+    }
 
-  const candidates: Candidate[] = [];
+    const candidates: Candidate[] = [];
 
-  // 1) Gather all 6- and 5-day windows
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    for (const length of [6, 5] as const) {
-      const periodDays = Array.from({ length }, (_, i) => {
-        const day = new Date(d);
-        day.setDate(d.getDate() + i);
-        return day;
-      });
+    // 1) Gather all 6- and 5-day windows
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const dayOfWeek = d.getDay();
 
-      // must fit in year & be at/after today
-      if (periodDays[length - 1] > end) continue;
-      if (periodDays[length - 1] < now) continue;
-      if (periodDays.some((day) => day.getFullYear() !== yearNum)) continue;
+      // Shouldn't start on a Monday (1)
+      if (dayOfWeek === 1) continue;
 
-      // require exactly 2 weekend days (Sat + Sun)
-      const weekendDays = periodDays.filter(isWeekend).length;
-      if (weekendDays !== 2) continue;
+      for (const length of [6, 5] as const) {
+        const periodDays = Array.from({ length }, (_, i) => {
+          const day = new Date(d);
+          day.setDate(d.getDate() + i);
+          return day;
+        });
 
-      // count user vs holiday days
-      let userDays = 0,
-        publicDays = 0,
-        companyDays = 0;
-      for (const day of periodDays) {
-        const iso = toIso(day);
-        const hol = allHolidaysMap.get(iso);
-        if (hol?.type === "PUBLIC_HOLIDAY") publicDays++;
-        else if (hol?.type === "COMPANY_HOLIDAY") companyDays++;
-        else if (!isWeekend(day)) userDays++;
+        // Must fit in year & be at/after today
+        if (periodDays[length - 1] > end) continue;
+        if (periodDays[0] < now) continue;
+        if (periodDays.some((day) => day.getFullYear() !== yearNum)) continue;
+
+        // Shouldn't end on a Friday (5)
+        if (periodDays[length - 1].getDay() === 5) continue;
+
+        // Must have exactly 2 weekend days (Sat + Sun)
+        const weekendDaysCount = periodDays.filter(isWeekend).length;
+        if (weekendDaysCount !== 2) continue;
+
+        // No overlap with already-booked periods
+        if (periodDays.some((day) => usedDates.has(toIso(day)))) continue;
+
+        // Process each day once based on priority
+        const processedDates = new Set<string>();
+        let userDays = 0,
+          publicDays = 0,
+          companyDays = 0,
+          weekendDays = 0;
+
+        for (const day of periodDays) {
+          const iso = toIso(day);
+
+          // Skip if already processed
+          if (processedDates.has(iso)) continue;
+
+          // Priority: Public Holiday > Company Holiday > Weekend > User Holiday
+          if (allHolidaysMap.has(iso)) {
+            const holiday = allHolidaysMap.get(iso)!;
+            if (holiday.type === "PUBLIC_HOLIDAY") publicDays++;
+            else if (holiday.type === "COMPANY_HOLIDAY") companyDays++;
+          } else if (isWeekend(day)) {
+            weekendDays++;
+          } else {
+            userDays++;
+          }
+
+          processedDates.add(iso);
+        }
+
+        // Skip if this period uses more holidays than available
+        if (userDays > availableUserHolidays) continue;
+
+        // Calculate score - prioritize periods with most holiday coverage and least user days
+        const holidayDays = publicDays + companyDays;
+        const score =
+          holidayDays * 10 +
+          weekendDays * 5 -
+          userDays * 3 +
+          (length === 6 ? 2 : 0);
+
+        candidates.push({
+          periodDays,
+          userDays,
+          publicDays,
+          companyDays,
+          weekendDays,
+          holidayDays,
+          length,
+          score,
+        });
+      }
+    }
+
+    // If no candidates found, break the loop
+    if (candidates.length === 0) break;
+
+    // Sort by score (best periods first)
+    candidates.sort((a, b) => b.score - a.score);
+
+    // Select the best candidate
+    const bestCandidate = candidates[0];
+
+    // Build DayOff[] with proper classification priority
+    const holidays: DayOff[] = [];
+    const processedDates = new Set<string>();
+
+    for (const day of bestCandidate.periodDays) {
+      const iso = toIso(day);
+
+      // Skip if already processed
+      if (processedDates.has(iso)) continue;
+
+      // Priority: Public Holiday > Company Holiday > Weekend > User Holiday
+      if (allHolidaysMap.has(iso)) {
+        holidays.push(allHolidaysMap.get(iso)!);
+      } else if (isWeekend(day)) {
+        holidays.push({ date: day, type: "WEEKEND" });
+      } else {
+        holidays.push({ date: day, type: "USER_HOLIDAY" });
       }
 
-      candidates.push({
-        periodDays,
-        userDays,
-        publicDays,
-        companyDays,
-        weekendDays,
-        holidayDays: publicDays + companyDays,
-      });
+      processedDates.add(iso);
     }
-  }
 
-  // 2) Sort: fewest userDays → most holidayDays → longer period → earliest start
-  candidates.sort((a, b) => {
-    if (a.userDays !== b.userDays) return a.userDays - b.userDays;
-    if (a.holidayDays !== b.holidayDays) return b.holidayDays - a.holidayDays;
-    if (a.periodDays.length !== b.periodDays.length)
-      return b.periodDays.length - a.periodDays.length;
-    return a.periodDays[0].getTime() - b.periodDays[0].getTime();
-  });
-
-  // 3) Greedily select non-overlapping windows
-  for (const c of candidates) {
-    if (c.userDays > availableUserHolidays) continue;
-    if (c.periodDays.some((day) => usedDates.has(toIso(day)))) continue;
-
-    // build DayOff[]
-    const holidays: DayOff[] = c.periodDays.map((day) => {
-      const iso = toIso(day);
-      const hol = allHolidaysMap.get(iso);
-      if (hol) return hol;
-      if (isWeekend(day)) return { date: day, type: "WEEKEND" };
-      return { date: day, type: "USER_HOLIDAY" };
-    });
-
+    // Create the period
     results.push({
-      startDate: c.periodDays[0],
-      endDate: c.periodDays[c.periodDays.length - 1],
+      startDate: bestCandidate.periodDays[0],
+      endDate: bestCandidate.periodDays[bestCandidate.periodDays.length - 1],
       holidays,
       type: "midWeek",
-      userHolidaysUsed: c.userDays,
-      publicHolidaysUsed: c.publicDays,
-      companyHolidaysUsed: c.companyDays,
-      weekendDays: c.weekendDays,
-      totalDaysOff: c.periodDays.length,
+      userHolidaysUsed: bestCandidate.userDays,
+      publicHolidaysUsed: bestCandidate.publicDays,
+      companyHolidaysUsed: bestCandidate.companyDays,
+      weekendDays: bestCandidate.weekendDays,
+      totalDaysOff: bestCandidate.periodDays.length,
+      description: `${bestCandidate.length}-day midweek break`,
     });
 
-    c.periodDays.forEach((day) => usedDates.add(toIso(day)));
-    availableUserHolidays -= c.userDays;
-    if (availableUserHolidays <= 0) break;
+    // Mark days as used
+    bestCandidate.periodDays.forEach((day) => usedDates.add(toIso(day)));
+
+    // Update remaining user holidays
+    availableUserHolidays -= bestCandidate.userDays;
   }
+
+  // Sort results by date
+  results.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
   return results;
 }
@@ -302,12 +370,426 @@ function calculateMidweekPeriods(input: StrategyInput): HolidayPeriod[] {
 // ========== Placeholders for other strategies ==========
 
 function calculateWeekPeriods(input: StrategyInput): HolidayPeriod[] {
-  // TODO: implement like above, for 7–9 day periods, maximize weekends/public/company holidays, minimize user holidays
-  return [];
+  const { publicHolidays, companyHolidays, userHolidayCount, year, today } =
+    input;
+  let availableUserHolidays = userHolidayCount;
+  const results: HolidayPeriod[] = [];
+  const usedDates = new Set<string>();
+  const allHolidaysMap = combineHolidays(publicHolidays, companyHolidays);
+
+  const yearNum = Number(year);
+  const start = new Date(yearNum, 0, 1);
+  const end = new Date(yearNum, 11, 31);
+  const now = today ?? new Date();
+
+  const toIso = (d: Date) => d.toISOString().slice(0, 10);
+  const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+
+  // Continue finding periods until all user holidays are used
+  while (availableUserHolidays > 0) {
+    interface Candidate {
+      periodDays: Date[];
+      userDays: number;
+      publicDays: number;
+      companyDays: number;
+      weekendDays: number;
+      length: number;
+      score: number;
+      publicHolidayCluster: boolean; // Preference for periods with clustered holidays
+    }
+
+    const candidates: Candidate[] = [];
+
+    // Look for 7-9 day periods
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      // Consider periods starting on any day (more flexible than long weekends/midweek)
+      for (const length of [9, 8, 7] as const) {
+        const periodDays = Array.from({ length }, (_, i) => {
+          const day = new Date(d);
+          day.setDate(d.getDate() + i);
+          return day;
+        });
+
+        // Basic validations
+        if (periodDays[length - 1] > end) continue;
+        if (periodDays[0] < now) continue;
+        if (periodDays.some((day) => day.getFullYear() !== yearNum)) continue;
+        if (periodDays.some((day) => usedDates.has(toIso(day)))) continue;
+
+        // Count day types
+        const processedDates = new Set<string>();
+        let userDays = 0,
+          publicDays = 0,
+          companyDays = 0,
+          weekendDays = 0;
+        let consecutiveHolidays = 0;
+        let maxConsecutiveHolidays = 0;
+
+        for (const day of periodDays) {
+          const iso = toIso(day);
+
+          // Skip if already processed
+          if (processedDates.has(iso)) continue;
+
+          if (allHolidaysMap.has(iso)) {
+            const holiday = allHolidaysMap.get(iso)!;
+            if (holiday.type === "PUBLIC_HOLIDAY") {
+              publicDays++;
+              consecutiveHolidays++;
+            } else if (holiday.type === "COMPANY_HOLIDAY") {
+              companyDays++;
+              consecutiveHolidays++;
+            }
+          } else if (isWeekend(day)) {
+            weekendDays++;
+            // Weekends also count toward consecutive "free" days
+            consecutiveHolidays++;
+          } else {
+            userDays++;
+            consecutiveHolidays = 0;
+          }
+
+          // Track max consecutive holiday/weekend streak
+          maxConsecutiveHolidays = Math.max(
+            maxConsecutiveHolidays,
+            consecutiveHolidays
+          );
+
+          processedDates.add(iso);
+        }
+
+        // Skip if too many user days required
+        if (userDays > availableUserHolidays) continue;
+
+        // Week periods should have at least 2 weekend days
+        if (weekendDays < 2) continue;
+
+        // Calculate score - reward efficiency and holiday clusters
+        const holidayDays = publicDays + companyDays;
+        const efficiency = (holidayDays + weekendDays) / length;
+        const publicHolidayCluster = maxConsecutiveHolidays >= 3;
+
+        // Score formula prioritizes:
+        // 1. Periods with more holidays and weekends (efficiency)
+        // 2. Periods with clustered holidays (consecutive days off without using vacation)
+        // 3. Longer periods (within 7-9 day range)
+        const score =
+          efficiency * 100 +
+          holidayDays * 10 +
+          weekendDays * 5 +
+          (publicHolidayCluster ? 50 : 0) +
+          (length - 7) * 3 -
+          userDays * 3;
+
+        candidates.push({
+          periodDays,
+          userDays,
+          publicDays,
+          companyDays,
+          weekendDays,
+          length,
+          score,
+          publicHolidayCluster,
+        });
+      }
+    }
+
+    // If no candidates found, break the loop
+    if (candidates.length === 0) break;
+
+    // Sort by score (best periods first)
+    candidates.sort((a, b) => b.score - a.score);
+
+    // Select the best candidate
+    const bestCandidate = candidates[0];
+
+    // Build DayOff[] with proper classification priority
+    const holidays: DayOff[] = [];
+    const processedDates = new Set<string>();
+
+    for (const day of bestCandidate.periodDays) {
+      const iso = toIso(day);
+
+      // Skip if already processed
+      if (processedDates.has(iso)) continue;
+
+      if (allHolidaysMap.has(iso)) {
+        holidays.push(allHolidaysMap.get(iso)!);
+      } else if (isWeekend(day)) {
+        holidays.push({ date: day, type: "WEEKEND" });
+      } else {
+        holidays.push({ date: day, type: "USER_HOLIDAY" });
+      }
+
+      processedDates.add(iso);
+    }
+
+    // Create descriptive name based on period features
+    let description = `${bestCandidate.length}-day week break`;
+
+    if (bestCandidate.publicHolidayCluster) {
+      description = `${bestCandidate.length}-day break around public holidays`;
+    } else if (bestCandidate.weekendDays >= 4) {
+      description = `${bestCandidate.length}-day break including multiple weekends`;
+    } else if (bestCandidate.publicDays >= 2) {
+      description = `${bestCandidate.length}-day break with public holidays`;
+    }
+
+    // Create the period
+    results.push({
+      startDate: bestCandidate.periodDays[0],
+      endDate: bestCandidate.periodDays[bestCandidate.periodDays.length - 1],
+      holidays,
+      type: "week",
+      userHolidaysUsed: bestCandidate.userDays,
+      publicHolidaysUsed: bestCandidate.publicDays,
+      companyHolidaysUsed: bestCandidate.companyDays,
+      weekendDays: bestCandidate.weekendDays,
+      totalDaysOff: bestCandidate.periodDays.length,
+      description,
+    });
+
+    // Mark days as used
+    bestCandidate.periodDays.forEach((day) => usedDates.add(toIso(day)));
+
+    // Update remaining user holidays
+    availableUserHolidays -= bestCandidate.userDays;
+  }
+
+  // Sort results by date
+  results.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+
+  return results;
 }
+
 function calculateExtendedPeriods(input: StrategyInput): HolidayPeriod[] {
-  // TODO: implement for 10–15 day periods
-  return [];
+  const { publicHolidays, companyHolidays, userHolidayCount, year, today } =
+    input;
+  let availableUserHolidays = userHolidayCount;
+  const results: HolidayPeriod[] = [];
+  const usedDates = new Set<string>();
+  const allHolidaysMap = combineHolidays(publicHolidays, companyHolidays);
+
+  const yearNum = Number(year);
+  const start = new Date(yearNum, 0, 1);
+  const end = new Date(yearNum, 11, 31);
+  const now = today ?? new Date();
+
+  const toIso = (d: Date) => d.toISOString().slice(0, 10);
+  const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+
+  // Find popular vacation periods
+  const summerStart = new Date(yearNum, 5, 15); // June 15
+  const summerEnd = new Date(yearNum, 8, 15); // September 15
+  const winterStart = new Date(yearNum, 11, 15); // December 15
+  const winterEnd = new Date(yearNum + 1, 0, 15); // January 15
+
+  // Create a map of holiday density to find clusters
+  const holidayDensityMap = new Map<string, number>();
+  const scanWindow = 14; // 2 weeks scan window
+
+  // Scan through the year to find holiday clusters
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    let localDensity = 0;
+    for (let i = -scanWindow / 2; i <= scanWindow / 2; i++) {
+      const scanDate = new Date(d);
+      scanDate.setDate(d.getDate() + i);
+      const scanIso = toIso(scanDate);
+
+      // Count public/company holidays and weekends
+      if (allHolidaysMap.has(scanIso)) localDensity += 3;
+      else if (isWeekend(scanDate)) localDensity += 1;
+    }
+    holidayDensityMap.set(toIso(d), localDensity);
+  }
+
+  // Try to find periods near popular vacation times and holiday clusters
+  while (availableUserHolidays >= 5) {
+    // Need at least 5 user holidays for extended break
+    interface Candidate {
+      periodDays: Date[];
+      userDays: number;
+      publicDays: number;
+      companyDays: number;
+      weekendDays: number;
+      length: number;
+      score: number;
+      isSummerPeriod: boolean;
+      isWinterPeriod: boolean;
+      holidayDensity: number;
+    }
+
+    const candidates: Candidate[] = [];
+
+    // Try different lengths, prioritizing longer periods
+    for (const length of [15, 14, 13, 12, 11, 10] as const) {
+      // Need enough user days available
+      const minRequiredUser = Math.max(0, length - 6); // Assuming at least ~6 weekend/holiday days
+      if (minRequiredUser > availableUserHolidays) continue;
+
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const periodDays = Array.from({ length }, (_, i) => {
+          const day = new Date(d);
+          day.setDate(d.getDate() + i);
+          return day;
+        });
+
+        // Basic validations
+        if (periodDays[length - 1] > end) continue;
+        if (periodDays[0] < now) continue;
+        if (periodDays.some((day) => usedDates.has(toIso(day)))) continue;
+
+        // Count day types
+        const processedDates = new Set<string>();
+        let userDays = 0,
+          publicDays = 0,
+          companyDays = 0,
+          weekendDays = 0;
+        let totalHolidayDensity = 0;
+
+        for (const day of periodDays) {
+          const iso = toIso(day);
+
+          // Skip if already processed
+          if (processedDates.has(iso)) continue;
+
+          // Add to holiday density score
+          totalHolidayDensity += holidayDensityMap.get(iso) || 0;
+
+          if (allHolidaysMap.has(iso)) {
+            const holiday = allHolidaysMap.get(iso)!;
+            if (holiday.type === "PUBLIC_HOLIDAY") {
+              publicDays++;
+            } else if (holiday.type === "COMPANY_HOLIDAY") {
+              companyDays++;
+            }
+          } else if (isWeekend(day)) {
+            weekendDays++;
+          } else {
+            userDays++;
+          }
+
+          processedDates.add(iso);
+        }
+
+        // Skip if too many user days required
+        if (userDays > availableUserHolidays) continue;
+
+        // Extended periods should have at least 4 weekend days (2 weekends)
+        if (weekendDays < 4) continue;
+
+        // Check if this period is in popular vacation seasons
+        const isSummerPeriod =
+          periodDays[0] >= summerStart && periodDays[0] <= summerEnd;
+        const isWinterPeriod =
+          (periodDays[0] >= winterStart && periodDays[0] <= end) ||
+          (periodDays[length - 1] >= start &&
+            periodDays[length - 1] <= winterEnd);
+
+        // Calculate average holiday density
+        const avgDensity = totalHolidayDensity / length;
+
+        // Score formula priorities:
+        // 1. Efficiency (ratio of "free" days to total days)
+        // 2. Holiday density (clusters of holidays/weekends)
+        // 3. Popular vacation periods
+        // 4. Length of period
+        const efficiency = (publicDays + companyDays + weekendDays) / length;
+        const seasonBonus = isSummerPeriod || isWinterPeriod ? 50 : 0;
+
+        const score =
+          efficiency * 150 +
+          avgDensity * 10 +
+          seasonBonus +
+          publicDays * 15 +
+          companyDays * 10 +
+          weekendDays * 7 +
+          (length - 10) * 5 -
+          userDays * 2;
+
+        candidates.push({
+          periodDays,
+          userDays,
+          publicDays,
+          companyDays,
+          weekendDays,
+          length,
+          score,
+          isSummerPeriod,
+          isWinterPeriod,
+          holidayDensity: avgDensity,
+        });
+      }
+    }
+
+    // If no candidates found, break the loop
+    if (candidates.length === 0) break;
+
+    // Sort by score (best periods first)
+    candidates.sort((a, b) => b.score - a.score);
+
+    // Select the best candidate
+    const bestCandidate = candidates[0];
+
+    // Build DayOff[] with proper classification priority
+    const holidays: DayOff[] = [];
+    const processedDates = new Set<string>();
+
+    for (const day of bestCandidate.periodDays) {
+      const iso = toIso(day);
+
+      // Skip if already processed
+      if (processedDates.has(iso)) continue;
+
+      if (allHolidaysMap.has(iso)) {
+        holidays.push(allHolidaysMap.get(iso)!);
+      } else if (isWeekend(day)) {
+        holidays.push({ date: day, type: "WEEKEND" });
+      } else {
+        holidays.push({ date: day, type: "USER_HOLIDAY" });
+      }
+
+      processedDates.add(iso);
+    }
+
+    // Create descriptive name based on period features
+    let description = `${bestCandidate.length}-day extended break`;
+
+    if (bestCandidate.isSummerPeriod) {
+      description = `${bestCandidate.length}-day summer vacation`;
+    } else if (bestCandidate.isWinterPeriod) {
+      description = `${bestCandidate.length}-day winter holiday`;
+    } else if (bestCandidate.holidayDensity > 10) {
+      description = `${bestCandidate.length}-day extended break around holidays`;
+    } else if (bestCandidate.weekendDays >= 6) {
+      description = `${bestCandidate.length}-day multi-weekend vacation`;
+    }
+
+    // Create the period
+    results.push({
+      startDate: bestCandidate.periodDays[0],
+      endDate: bestCandidate.periodDays[bestCandidate.periodDays.length - 1],
+      holidays,
+      type: "extended",
+      userHolidaysUsed: bestCandidate.userDays,
+      publicHolidaysUsed: bestCandidate.publicDays,
+      companyHolidaysUsed: bestCandidate.companyDays,
+      weekendDays: bestCandidate.weekendDays,
+      totalDaysOff: bestCandidate.periodDays.length,
+      description,
+    });
+
+    // Mark days as used
+    bestCandidate.periodDays.forEach((day) => usedDates.add(toIso(day)));
+
+    // Update remaining user holidays
+    availableUserHolidays -= bestCandidate.userDays;
+  }
+
+  // Sort results by date
+  results.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+
+  return results;
 }
 
 // ========== Helper for Building Periods ==========
