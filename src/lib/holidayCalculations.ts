@@ -24,7 +24,15 @@ interface PeriodCandidate {
   length: number;
   score?: number; // Score will be calculated by the strategy
   // Allow for strategy-specific properties to be added for scoring/description
-  [key: string]: any;
+  consecutiveHolidays?: number;
+  maxConsecutiveHolidays?: number;
+  totalHolidayDensity?: number;
+}
+
+interface PrecomputedData {
+  holidayDensityMap?: Map<string, number>;
+  yearNum?: number;
+  // Add other potential precomputed properties here
 }
 
 interface StrategyConfig {
@@ -57,19 +65,19 @@ interface StrategyConfig {
     candidate: PeriodCandidate,
     allHolidaysMap: Map<string, DayOff>,
     passIndex: number,
-    precomputedData?: Record<string, any>
+    precomputedData?: PrecomputedData
   ) => boolean;
   // Scores a candidate period. Higher is better.
   candidateScoringFn: (
     candidate: PeriodCandidate,
     passIndex: number,
-    precomputedData?: Record<string, any>
+    precomputedData?: PrecomputedData
   ) => number;
   // Generates a description for the resulting holiday period
   descriptionFn: (
     period: HolidayPeriod,
     candidateData: PeriodCandidate,
-    precomputedData?: Record<string, any>
+    precomputedData?: PrecomputedData
   ) => string;
   // Minimum total user holidays required to even attempt this strategy
   minTotalUserHolidaysRequiredForStrategy?: number;
@@ -77,7 +85,7 @@ interface StrategyConfig {
   precomputeFn?: (
     input: StrategyInput,
     allHolidaysMap: Map<string, DayOff>
-  ) => Record<string, any>;
+  ) => PrecomputedData;
 }
 
 // ========== Helpers (some might be localized or modified) ==========
@@ -210,7 +218,11 @@ function executeHolidayStrategy(
           publicDaysInCandidate = 0,
           companyDaysInCandidate = 0,
           weekendDaysInCandidate = 0;
-        const candidateSpecificProps: Record<string, any> = {};
+        const candidateSpecificProps: {
+          consecutiveHolidays?: number;
+          maxConsecutiveHolidays?: number;
+          totalHolidayDensity?: number;
+        } = {};
 
         // Initialize strategy-specific properties if needed by scoring/filtering
         if (
@@ -232,7 +244,8 @@ function executeHolidayStrategy(
 
           if (
             config.strategyType === "extended" &&
-            precomputedData?.holidayDensityMap
+            precomputedData?.holidayDensityMap &&
+            candidateSpecificProps.totalHolidayDensity !== undefined // Ensure property exists
           ) {
             candidateSpecificProps.totalHolidayDensity +=
               precomputedData.holidayDensityMap.get(iso) || 0;
@@ -244,21 +257,28 @@ function executeHolidayStrategy(
             if (holiday.type === "PUBLIC_HOLIDAY") publicDaysInCandidate++;
             else if (holiday.type === "COMPANY_HOLIDAY")
               companyDaysInCandidate++;
-            if (candidateSpecificProps.hasOwnProperty("consecutiveHolidays"))
+            if (candidateSpecificProps.consecutiveHolidays !== undefined)
+              // Ensure property exists
               candidateSpecificProps.consecutiveHolidays++;
           } else if (isWeekend(day)) {
             weekendDaysInCandidate++;
-            if (candidateSpecificProps.hasOwnProperty("consecutiveHolidays"))
+            if (candidateSpecificProps.consecutiveHolidays !== undefined)
+              // Ensure property exists
               candidateSpecificProps.consecutiveHolidays++;
           } else {
             userDaysInCandidate++; // Assumed to be a user day if not holiday/weekend
-            if (candidateSpecificProps.hasOwnProperty("consecutiveHolidays"))
+            if (candidateSpecificProps.consecutiveHolidays !== undefined)
+              // Ensure property exists
               candidateSpecificProps.consecutiveHolidays = 0;
           }
-          if (candidateSpecificProps.hasOwnProperty("maxConsecutiveHolidays")) {
+          if (
+            candidateSpecificProps.maxConsecutiveHolidays !== undefined && // Ensure property exists
+            candidateSpecificProps.consecutiveHolidays !== undefined
+          ) {
+            // Ensure property exists
             candidateSpecificProps.maxConsecutiveHolidays = Math.max(
               candidateSpecificProps.maxConsecutiveHolidays,
-              candidateSpecificProps.consecutiveHolidays || 0
+              candidateSpecificProps.consecutiveHolidays
             );
           }
         }
@@ -405,7 +425,7 @@ const longWeekendConfig: StrategyConfig = {
       userDaysInCandidate === 1 && userDaysInCandidate <= availableUserHolidays
     );
   },
-  candidateScoringFn: (candidate, passIndex) => {
+  candidateScoringFn: (_candidate, passIndex) => {
     // Prioritize 4-day (pass 0) over 3-day (pass 1)
     // Within a pass, all valid candidates are equal as per original logic
     return passIndex === 0 ? 100 : 50;
@@ -447,7 +467,7 @@ const weekConfig: StrategyConfig = {
   candidateScoringFn: (candidate) => {
     const holidayDays = candidate.publicDays + candidate.companyDays;
     const efficiency = (holidayDays + candidate.weekendDays) / candidate.length;
-    const publicHolidayCluster = candidate.maxConsecutiveHolidays >= 3;
+    const publicHolidayCluster = (candidate.maxConsecutiveHolidays || 0) >= 3; // Added fallback for undefined
     return (
       efficiency * 100 +
       holidayDays * 10 +
@@ -459,7 +479,8 @@ const weekConfig: StrategyConfig = {
   },
   descriptionFn: (period, candidateData) => {
     let description = `${period.totalDaysOff}-day week break`;
-    if (candidateData.maxConsecutiveHolidays >= 3) {
+    if ((candidateData.maxConsecutiveHolidays || 0) >= 3) {
+      // Added fallback for undefined
       description = `${period.totalDaysOff}-day break around public holidays`;
     } else if (period.weekendDays >= 4) {
       description = `${period.totalDaysOff}-day break including multiple weekends`;
@@ -503,11 +524,15 @@ const extendedConfig: StrategyConfig = {
     }
     return { holidayDensityMap, yearNum };
   },
-  candidateScoringFn: (candidate, passIndex, precomputedData) => {
+  candidateScoringFn: (candidate, _passIndex, precomputedData) => {
     const holidayDays = candidate.publicDays + candidate.companyDays;
     const efficiency = (holidayDays + candidate.weekendDays) / candidate.length;
 
-    const yearNum = precomputedData!.yearNum;
+    const yearNum = precomputedData?.yearNum; // Access yearNum safely
+    if (yearNum === undefined) {
+      // Handle missing yearNum, perhaps return a default score or throw error
+      return 0;
+    }
     const summerStart = new Date(yearNum, 5, 15);
     const summerEnd = new Date(yearNum, 8, 15);
     const winterStart = new Date(yearNum, 11, 15);
@@ -535,7 +560,11 @@ const extendedConfig: StrategyConfig = {
   },
   descriptionFn: (period, candidateData, precomputedData) => {
     let description = `${period.totalDaysOff}-day extended break`;
-    const yearNum = precomputedData!.yearNum;
+    const yearNum = precomputedData?.yearNum; // Access yearNum safely
+    if (yearNum === undefined) {
+      // Handle missing yearNum
+      return description;
+    }
     const summerStart = new Date(yearNum, 5, 15);
     const summerEnd = new Date(yearNum, 8, 15);
     const winterStart = new Date(yearNum, 11, 15);

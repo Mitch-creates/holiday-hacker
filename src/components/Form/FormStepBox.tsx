@@ -13,7 +13,6 @@ interface FormStepBoxProps {
   label: string;
   tooltip: string;
   children: ReactNode;
-  themeColor1: string;
   themeColor2: string;
 }
 
@@ -23,7 +22,6 @@ export function FormStepBox({
   tooltip,
   label,
   children,
-  themeColor1,
   themeColor2,
 }: FormStepBoxProps) {
   return (

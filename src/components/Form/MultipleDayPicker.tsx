@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
-import { isBefore, isAfter } from "date-fns"; // Import isAfter
+import { isBefore } from "date-fns";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -53,7 +53,6 @@ export default function MultipleDayPicker({
       updatedDays = [...selectedDays, day];
     }
     setSelectedDays(updatedDays);
-    console.log("Selected days", updatedDays);
     const companyHolidays: CompanyHoliday[] = updatedDays.map((day, index) => ({
       name: "Company day " + (index + 1), // Empty name that a user can fill in later if they want to
       date: day,
