@@ -116,18 +116,17 @@ export function FormResultsProvider({
       dispatch({ type: "SET_FIELD", field: "error", value: null });
 
       try {
-        // generateHolidayPeriods is synchronous, Promise.resolve is used to match async structure if needed later
-        const calculatedResults = await Promise.resolve(
-          generateHolidayPeriods(formData)
-        );
+        // Call generateHolidayPeriods; it handles dispatching success, calculatedPeriods, and isCalculated.
+        generateHolidayPeriods(formData);
 
-        dispatch({
-          type: "SET_FIELD",
-          field: "calculatedPeriods",
-          value: calculatedResults,
-        });
-        dispatch({ type: "SET_FIELD", field: "status", value: "success" });
-        dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
+        // Removed incorrect dispatches that were overwriting calculatedPeriods with undefined:
+        // dispatch({
+        //   type: "SET_FIELD",
+        //   field: "calculatedPeriods",
+        //   value: calculatedResults, // calculatedResults would have been undefined
+        // });
+        // dispatch({ type: "SET_FIELD", field: "status", value: "success" });
+        // dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
       } catch (e) {
         console.error("Error in generateResults:", e);
         const errorMessage =
@@ -157,14 +156,17 @@ export function FormResultsProvider({
     dispatch({ type: "SET_FIELD", field: "error", value: null });
 
     try {
-      const periods = generateHolidayPeriods(newFormInputState);
-      dispatch({
-        type: "SET_FIELD",
-        field: "calculatedPeriods",
-        value: periods,
-      });
-      dispatch({ type: "SET_FIELD", field: "status", value: "success" });
-      dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
+      // Call generateHolidayPeriods; it handles dispatching success, calculatedPeriods, and isCalculated.
+      generateHolidayPeriods(newFormInputState);
+
+      // Removed incorrect dispatches that were overwriting calculatedPeriods with undefined:
+      // dispatch({
+      //   type: "SET_FIELD",
+      //   field: "calculatedPeriods",
+      //   value: periods, // periods would have been undefined
+      // });
+      // dispatch({ type: "SET_FIELD", field: "status", value: "success" });
+      // dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
     } catch (e) {
       console.error(
         "Error in updateFormInputState while generating periods:",
