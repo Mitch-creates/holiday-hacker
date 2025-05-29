@@ -49,6 +49,7 @@ interface FormResultsState {
   status: "idle" | "loading" | "success" | "error";
   error: string | null;
   calculatedPeriods: HolidayPeriod[];
+  isCalculated: boolean; // Added to indicate if calculation is done
 }
 
 // Create initial state for the results
@@ -57,6 +58,7 @@ const initialState: FormResultsState = {
   status: "idle",
   error: null,
   calculatedPeriods: [],
+  isCalculated: false, // Initialized to false
 };
 
 // Action types for the reducer
@@ -105,50 +107,85 @@ export function FormResultsProvider({
 }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Generate results based on form data (this is where you would call your calculation logic)
-  const generateResults = useCallback(async (formData) => {
-    // Show loading state
-    dispatch({ type: "SET_LOADING" });
+  // Generate results based on form data
+  const generateResults = useCallback(
+    async (formData: FormInputState) => {
+      dispatch({ type: "SET_FIELD", field: "formInputState", value: formData });
+      dispatch({ type: "SET_FIELD", field: "status", value: "loading" });
+      dispatch({ type: "SET_FIELD", field: "isCalculated", value: false });
+      dispatch({ type: "SET_FIELD", field: "error", value: null });
 
-    try {
-      const calculatedResults = generateHolidayPeriods(formData);
+      try {
+        // generateHolidayPeriods is synchronous, Promise.resolve is used to match async structure if needed later
+        const calculatedResults = await Promise.resolve(
+          generateHolidayPeriods(formData)
+        );
 
-      // Update state with results
-      dispatch({ type: "SET_RESULTS", payload: calculatedResults });
-    } catch (error) {
-      dispatch({
-        type: "SET_ERROR",
-        payload: "Failed to calculate optimal holidays",
-      });
-    }
-  }, []);
+        dispatch({
+          type: "SET_FIELD",
+          field: "calculatedPeriods",
+          value: calculatedResults,
+        });
+        dispatch({ type: "SET_FIELD", field: "status", value: "success" });
+        dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
+      } catch (e) {
+        console.error("Error in generateResults:", e);
+        const errorMessage =
+          e instanceof Error
+            ? e.message
+            : "Failed to calculate optimal holidays";
+        dispatch({ type: "SET_FIELD", field: "error", value: errorMessage });
+        dispatch({ type: "SET_FIELD", field: "status", value: "error" });
+        dispatch({ type: "SET_FIELD", field: "isCalculated", value: false });
+      }
+    },
+    [dispatch]
+  ); // dispatch is stable, generateHolidayPeriods is part of component scope
 
   const clearResults = useCallback(() => {
-    dispatch({ type: "CLEAR_RESULTS" });
-  }, []);
+    dispatch({ type: "RESET_RESULTS" }); // Corrected action type
+  }, [dispatch]);
 
-  function updateFormInputState(formInputState: FormInputState) {
+  function updateFormInputState(newFormInputState: FormInputState) {
     dispatch({
       type: "SET_FIELD",
       field: "formInputState",
-      value: formInputState,
+      value: newFormInputState,
     });
     dispatch({ type: "SET_FIELD", field: "status", value: "loading" });
+    dispatch({ type: "SET_FIELD", field: "isCalculated", value: false });
+    dispatch({ type: "SET_FIELD", field: "error", value: null });
 
-    dispatch({
-      type: "SET_FIELD",
-      field: "calculatedPeriods",
-      value: generateHolidayPeriods(formInputState),
-    });
+    try {
+      const periods = generateHolidayPeriods(newFormInputState);
+      dispatch({
+        type: "SET_FIELD",
+        field: "calculatedPeriods",
+        value: periods,
+      });
+      dispatch({ type: "SET_FIELD", field: "status", value: "success" });
+      dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
+    } catch (e) {
+      console.error(
+        "Error in updateFormInputState while generating periods:",
+        e
+      );
+      const errorMessage =
+        e instanceof Error ? e.message : "Failed to calculate optimal holidays";
+      dispatch({ type: "SET_FIELD", field: "error", value: errorMessage });
+      dispatch({ type: "SET_FIELD", field: "status", value: "error" });
+      dispatch({ type: "SET_FIELD", field: "isCalculated", value: false });
+    }
   }
 
-  function generateHolidayPeriods(formInputState: FormInputState) {
+  function generateHolidayPeriods(currentFormInputState: FormInputState) {
+    // Renamed param for clarity
     const periods: HolidayPeriod[] = calculateOptimizedHolidayPeriods(
-      formInputState.strategy,
-      formInputState.publicHolidays,
-      formInputState.companyHolidays,
-      Number(formInputState.userHolidays),
-      formInputState.year
+      currentFormInputState.strategy,
+      currentFormInputState.publicHolidays,
+      currentFormInputState.companyHolidays,
+      Number(currentFormInputState.userHolidays),
+      currentFormInputState.year
     );
     console.log("Generated holiday periods:", periods);
     return periods;
