@@ -15,6 +15,16 @@ export default function AppLayout() {
       {/* Main container for the entire app layout */}
       <div className="flex flex-col min-h-screen">
         <Header /> {/* Added Header component */}
+        {/* Title and Subtitle Section */}
+        <div className="text-center px-4 py-8 bg-background">
+          <h1 className="text-1xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl lg:text-4xl">
+            Holiday Optimizer
+          </h1>
+          <p className="mt-3 text-base text-muted-foreground sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl">
+            Maximize your time off by strategically planning your holidays
+            around public and company holidays.
+          </p>
+        </div>
         {/* Main content area that grows to fill available space */}
         <main
           // This code makes sure that the form is always centered in the middle of the screen

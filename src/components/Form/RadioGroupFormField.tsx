@@ -63,7 +63,7 @@ export function RadioGroupFormField({
                       className="sr-only"
                     />
                     <div
-                      className={`flex items-center justify-center w-10 h-10 rounded-md bg-muted transition-colors duration-150 ease-in-out ${
+                      className={`flex items-center justify-center w-10 h-10 rounded-md bg-muted transition-colors duration-150 ease-in-out flex-shrink-0 ${
                         option.value === strategy ? `bg-${themeColor}/20` : ""
                       }`}
                     >
@@ -73,7 +73,7 @@ export function RadioGroupFormField({
                         }`}
                       />
                     </div>
-                    <div className="flex flex-col gap-1 text-muted-foreground">
+                    <div className="flex flex-1 flex-col gap-1 text-muted-foreground">
                       <span
                         className={`flex items-center text-sm font-bold text-${themeColor}`}
                       >

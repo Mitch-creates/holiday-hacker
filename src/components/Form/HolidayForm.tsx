@@ -21,7 +21,7 @@ import { ModifyHolidays } from "./ModifyHolidays";
 import FormContainer from "./FormContainer";
 import MultipleDayPicker from "./MultipleDayPicker";
 import { ModifyCompanyHolidays } from "./ModifyCompanyHolidays";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormResults } from "@/context/FormResultsContext";
 import { StrategyType } from "@/lib/holidayCalculations";
 
@@ -96,8 +96,10 @@ const radioOptions = [
 
 export function HolidayForm() {
   const { updateUserHolidays, state, updateStrategy } = useHolidayForm();
-  const { updateFormInputState } = useFormResults();
+  // Get state from useFormResults as well, aliasing to formResultsState to avoid naming conflict
+  const { updateFormInputState, state: formResultsState } = useFormResults();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [awaitingScroll, setAwaitingScroll] = useState(false); // New state for scroll trigger
 
   const form = useForm<HolidayFormValues>({
     resolver: zodResolver(formSchema),
@@ -110,48 +112,57 @@ export function HolidayForm() {
   });
 
   function onSubmit(data: HolidayFormValues) {
-    // Use the data from the form submission to update the context state for strategy
     if (data.strategy) {
       updateStrategy(data.strategy);
     }
     setIsGenerating(true);
+    setAwaitingScroll(true); // Indicate that a scroll will be needed after generation
 
-    // Create a snapshot of the current state
     const formSnapshot = {
       userHolidays: state.userHolidays,
       year: state.year,
-      strategy: data.strategy as StrategyType, // Use data.strategy and cast to StrategyType
+      strategy: data.strategy as StrategyType,
       selectedCountry: state.selectedCountry,
-      selectedRegion: state.selectedRegion || "", // Ensure selectedRegion is a string
+      selectedRegion: state.selectedRegion || "",
       publicHolidays: state.rawHolidays.filter(
         (holiday) => !state.deletedHolidays.includes(holiday.date)
       ),
       companyHolidays: state.companyHolidays,
     };
 
-    // Scroll based on screen size
-    if (window.innerWidth >= 1024) {
-      // lg breakpoint (desktop)
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      // Mobile
-      const outputContainer = document.getElementById(
-        "output-container-wrapper"
-      );
-      if (outputContainer) {
-        outputContainer.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }
-
     setTimeout(() => {
       try {
-        // Pass the snapshot to results context
         updateFormInputState(formSnapshot);
       } finally {
         setIsGenerating(false);
+        // Scroll logic is now handled by the useEffect below
       }
     }, 2500);
   }
+
+  // useEffect to handle scrolling when results are ready
+  useEffect(() => {
+    // Condition: awaiting scroll, generation finished, and output area should be visible
+    if (awaitingScroll && !isGenerating && formResultsState.status !== "idle") {
+      requestAnimationFrame(() => {
+        // Use requestAnimationFrame for smoother DOM interaction
+        if (window.innerWidth >= 1024) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          const outputContainer = document.getElementById(
+            "output-container-wrapper"
+          );
+          if (outputContainer) {
+            outputContainer.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }
+        setAwaitingScroll(false); // Reset the flag
+      });
+    }
+  }, [awaitingScroll, isGenerating, formResultsState.status]);
 
   function handleUserHolidaysChange(value: string) {
     // Update the context with the new value

@@ -75,7 +75,7 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
 
   return (
     <Card className="w-full shadow-sm hover:shadow-md transition-shadow duration-200 border flex flex-col">
-      <CardHeader className="p-3">
+      <CardHeader>
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-md font-semibold text-gray-700">
@@ -95,17 +95,18 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="p-3 flex-grow">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-xs text-center">
+      <CardContent className="flex-grow">
+        {/* Changed from grid to flex layout for icons */}
+        <div className="flex flex-wrap justify-start items-center gap-x-4 gap-y-2 mb-3 text-xs text-center">
           <div className="flex flex-col items-center">
-            <CalendarCheckIcon className="w-4 h-4 mb-1.5 text-theme-2" />
+            <CalendarCheckIcon className="w-4 h-4 mb-0.5 text-theme-2" />
             <span className={`font-medium text-theme-2`}>
               {period.userHolidaysUsed}
             </span>
           </div>
           {period.companyHolidaysUsed > 0 && (
             <div className="flex flex-col items-center">
-              <Building2 className="w-4 h-4 mb-1.5 text-theme-8" />
+              <Building2 className="w-4 h-4 mb-0.5 text-theme-8" />
               <span className={`font-medium text-theme-8`}>
                 {period.companyHolidaysUsed}
               </span>
@@ -113,14 +114,14 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
           )}
           {period.publicHolidaysUsed > 0 && (
             <div className="flex flex-col items-center">
-              <FlagIcon className="w-4 h-4 mb-1.5 text-theme-6" />
+              <FlagIcon className="w-4 h-4 mb-0.5 text-theme-6" />
               <span className={`font-medium text-theme-6`}>
                 {period.publicHolidaysUsed}
               </span>
             </div>
           )}
           <div className="flex flex-col items-center">
-            <Clock className="w-4 h-4 mb-1.5 text-gray-600" />
+            <Clock className="w-4 h-4 mb-0.5 text-gray-600" />
             <span className="font-medium text-gray-600">
               {period.weekendDays}
             </span>
