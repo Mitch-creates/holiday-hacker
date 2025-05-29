@@ -405,7 +405,7 @@ const longWeekendConfig: StrategyConfig = {
       userDaysInCandidate === 1 && userDaysInCandidate <= availableUserHolidays
     );
   },
-  candidateScoringFn: (candidate, passIndex) => {
+  candidateScoringFn: (_candidate, passIndex) => {
     // Prioritize 4-day (pass 0) over 3-day (pass 1)
     // Within a pass, all valid candidates are equal as per original logic
     return passIndex === 0 ? 100 : 50;
@@ -503,7 +503,7 @@ const extendedConfig: StrategyConfig = {
     }
     return { holidayDensityMap, yearNum };
   },
-  candidateScoringFn: (candidate, passIndex, precomputedData) => {
+  candidateScoringFn: (candidate, _passIndex, precomputedData) => {
     const holidayDays = candidate.publicDays + candidate.companyDays;
     const efficiency = (holidayDays + candidate.weekendDays) / candidate.length;
 

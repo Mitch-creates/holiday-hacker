@@ -163,6 +163,10 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
     }
   }, [state.selectedCountry, state.selectedRegion, holidays]);
 
+  const setHolidays = useCallback((holidays: HolidaysTypes.Holiday[]) => {
+    dispatch({ type: "SET_FIELD", field: "rawHolidays", value: holidays });
+  }, []);
+
   return (
     <FormContext.Provider
       value={{
@@ -173,6 +177,7 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
         updateSelectedCountry: updateSelectedCountry,
         updateSelectedRegion: updateSelectedRegion,
         updateCompanyHolidays: updateCompanyHolidays,
+        setHolidays,
         deleteHoliday: deleteHoliday,
         resetHolidays: resetHolidays,
       }}

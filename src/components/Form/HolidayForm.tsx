@@ -9,7 +9,6 @@ import { useHolidayForm } from "@/context/FormContext";
 import { FormStepBox } from "./FormStepBox";
 import { clsx } from "clsx";
 import {
-  GanttChart,
   Landmark,
   CalendarClock,
   CalendarRange,
@@ -24,6 +23,7 @@ import MultipleDayPicker from "./MultipleDayPicker";
 import { ModifyCompanyHolidays } from "./ModifyCompanyHolidays";
 import { useState } from "react";
 import { useFormResults } from "@/context/FormResultsContext";
+import { StrategyType } from "@/lib/holidayCalculations";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -40,7 +40,7 @@ const formSchema = z.object({
     errorMap: () => ({ message: "Please select a type of holiday" }),
   }),
   selectedCountry: z.string().nonempty("Please select a country"),
-  selectedRegion: z.string().default("default"),
+  selectedRegion: z.string().optional(),
 });
 
 const StepNumberIcon = ({
@@ -95,11 +95,11 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const { updateUserHolidays, state } = useHolidayForm();
+  const { updateUserHolidays, state, updateStrategy } = useHolidayForm();
   const { updateFormInputState } = useFormResults();
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<HolidayFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       userHolidays: 0,
@@ -109,16 +109,20 @@ export function HolidayForm() {
     },
   });
 
-  function onSubmit() {
+  function onSubmit(data: HolidayFormValues) {
+    // Use the data from the form submission to update the context state for strategy
+    if (data.strategy) {
+      updateStrategy(data.strategy);
+    }
     setIsGenerating(true);
 
     // Create a snapshot of the current state
     const formSnapshot = {
       userHolidays: state.userHolidays,
       year: state.year,
-      strategy: state.strategy,
+      strategy: data.strategy as StrategyType, // Use data.strategy and cast to StrategyType
       selectedCountry: state.selectedCountry,
-      selectedRegion: state.selectedRegion,
+      selectedRegion: state.selectedRegion || "", // Ensure selectedRegion is a string
       publicHolidays: state.rawHolidays.filter(
         (holiday) => !state.deletedHolidays.includes(holiday.date)
       ),
@@ -152,7 +156,6 @@ export function HolidayForm() {
             title="Enter Your Number Of Holidays"
             label="How many paid days off do you have?"
             tooltip="Include only official holidays, not sick days or unpaid leave."
-            themeColor1="theme-1"
             themeColor2="theme-2"
           >
             <InputNumberFormField
@@ -173,12 +176,11 @@ export function HolidayForm() {
             title="Choose Type Of Holidays"
             label="What type of holidays do you prefer?"
             tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
-            themeColor1="theme-3"
             themeColor2="theme-4"
           >
             <RadioGroupFormField
               control={form.control}
-              formFieldName="selectedTypeOfHoliday"
+              formFieldName="strategy"
               options={radioOptions}
               themeColor="theme-4"
             />
@@ -191,13 +193,20 @@ export function HolidayForm() {
             title="Get Public Holidays"
             label="Get the public holidays for 2025 by selecting your country, state, and region."
             tooltip="Make sure that you're not accounting for these holidays in the first section, keep them seperate."
-            themeColor1="theme-5"
             themeColor2="theme-6"
           >
             <div className="space-y-3">
-              <CountrySelect control={form.control} />
+              <CountrySelect
+                control={form.control}
+                themeColor1="theme-5"
+                themeColor2="theme-6"
+              />
               {form.watch("selectedCountry") && (
-                <RegionSelect control={form.control} />
+                <RegionSelect
+                  control={form.control}
+                  themeColor1="theme-5"
+                  themeColor2="theme-6"
+                />
               )}
             </div>
             <ModifyHolidays themeColor="theme-6" />
@@ -210,7 +219,6 @@ export function HolidayForm() {
             title="Provide your company holidays"
             label={`Provide your company's holidays for ${state.year} by selecting them from the calendar.`}
             tooltip="After choosing your company's holidays, you can easily edit or delete them from the list."
-            themeColor1="theme-7"
             themeColor2="theme-8"
           >
             <MultipleDayPicker themeColor="theme-7" showOutsideDays={true} />

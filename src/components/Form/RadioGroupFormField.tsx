@@ -7,7 +7,7 @@ import { useHolidayForm } from "@/context/FormContext";
 
 interface RadioGroupFormFieldProps {
   control: Control<HolidayFormValues>;
-  formFieldName: "selectedTypeOfHoliday";
+  formFieldName: "strategy"; // Corrected from selectedTypeOfHoliday
   themeColor: string;
   options: {
     value: string;

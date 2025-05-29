@@ -7,15 +7,12 @@ import {
   CheckCircle, // Keep for "No Holiday Periods Generated"
   XCircle,
   Loader2,
-  // Building2, // Replaced by Building
-  Star,
   Clock,
   Building2, // Added for Company Holidays
-  CalendarPlus, // Added for User Holidays (PTO)
   ListChecks, // Added for Strategy
   CheckCircle2,
-  Flag,
-  CalendarCheck,
+  Flag as FlagIcon, // Renamed to avoid conflict
+  CalendarCheck as CalendarCheckIcon, // Renamed to avoid conflict
   ChartColumn, // Added for Summary Title Icon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -213,7 +210,7 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
       <CardContent className="p-3 flex-grow">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-xs text-center">
           <div className="flex flex-col items-center">
-            <CalendarCheck className="w-4 h-4 mb-1.5 text-theme-2" />
+            <CalendarCheckIcon className="w-4 h-4 mb-1.5 text-theme-2" />
             <span className={`font-medium text-theme-2`}>
               {period.userHolidaysUsed}
             </span>
@@ -228,7 +225,7 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
           )}
           {period.publicHolidaysUsed > 0 && (
             <div className="flex flex-col items-center">
-              <Flag className="w-4 h-4 mb-1.5 text-theme-6" />
+              <FlagIcon className="w-4 h-4 mb-1.5 text-theme-6" />
               <span className={`font-medium text-theme-6`}>
                 {period.publicHolidaysUsed}
               </span>
@@ -402,7 +399,7 @@ export const OutputContainer: React.FC = () => {
             <SummaryItem
               label="Public Holidays Used"
               value={totalPublicHolidaysUsed}
-              icon={Flag}
+              icon={FlagIcon}
               valueClassName="theme-6"
             />
             <SummaryItem
@@ -414,7 +411,7 @@ export const OutputContainer: React.FC = () => {
             <SummaryItem
               label="User Holidays Used"
               value={totalUserHolidaysUsed}
-              icon={CalendarCheck}
+              icon={CalendarCheckIcon}
               valueClassName="theme-2"
             />
             <SummaryItem
