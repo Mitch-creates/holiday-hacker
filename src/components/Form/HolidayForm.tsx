@@ -129,6 +129,9 @@ export function HolidayForm() {
       companyHolidays: state.companyHolidays,
     };
 
+    // Scroll to the top of the page
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
     setTimeout(() => {
       try {
         // Pass the snapshot to results context

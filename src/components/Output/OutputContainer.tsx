@@ -21,6 +21,19 @@ export const OutputContainer: React.FC = () => {
   const { state } = useFormResults();
   const { status, calculatedPeriods, formInputState, error } = state;
 
+  // Initial loading state
+  if (status === "loading") {
+    return (
+      <div className="flex flex-col items-center justify-center mt-10">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+        <p className="mt-4 text-lg text-gray-700">
+          Calculating your optimal holidays...
+        </p>
+      </div>
+    );
+  }
+
+  // Idle state
   if (status === "idle") {
     return (
       <Alert variant="default" className="mt-6">
@@ -34,17 +47,7 @@ export const OutputContainer: React.FC = () => {
     );
   }
 
-  if (status === "loading") {
-    return (
-      <div className="flex flex-col items-center justify-center mt-10">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-        <p className="mt-4 text-lg text-gray-700">
-          Calculating your optimal holidays...
-        </p>
-      </div>
-    );
-  }
-
+  // Error state
   if (status === "error") {
     return (
       <Alert variant="destructive" className="mt-6">
@@ -57,7 +60,12 @@ export const OutputContainer: React.FC = () => {
     );
   }
 
-  if (status === "success" && calculatedPeriods.length === 0) {
+  // Success state with no results
+  if (
+    status === "success" &&
+    calculatedPeriods.length === 0 &&
+    !formInputState
+  ) {
     return (
       <Alert variant="default" className="mt-6">
         <CheckCircle className="h-4 w-4" />
@@ -70,6 +78,7 @@ export const OutputContainer: React.FC = () => {
     );
   }
 
+  // This block now handles success display
   if (status === "success" && calculatedPeriods.length > 0 && formInputState) {
     const totalUserHolidaysUsed = calculatedPeriods.reduce(
       (sum, p) => sum + p.userHolidaysUsed,
@@ -93,8 +102,13 @@ export const OutputContainer: React.FC = () => {
       calculatedPeriods[0]?.type.replace("_", " ") ||
       "N/A";
 
+    // Removed containerClassName logic related to blur
+
     return (
-      <>
+      // Removed relative positioning and loader overlay
+      <div className="mt-6">
+        {" "}
+        {/* Added margin-top for spacing */}
         <Card className="shadow-sm border">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-700 flex items-center">
@@ -142,13 +156,12 @@ export const OutputContainer: React.FC = () => {
             />
           </CardContent>
         </Card>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           {calculatedPeriods.map((period, index) => (
             <HolidayPeriodCard key={index} period={period} />
           ))}
         </div>
-      </>
+      </div>
     );
   }
 

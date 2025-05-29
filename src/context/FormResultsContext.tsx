@@ -107,28 +107,26 @@ export function FormResultsProvider({
 }) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  // Generate results based on form data
-  const generateResults = useCallback(
-    async (formData: FormInputState) => {
-      dispatch({ type: "SET_FIELD", field: "formInputState", value: formData });
-      dispatch({ type: "SET_FIELD", field: "status", value: "loading" });
-      dispatch({ type: "SET_FIELD", field: "isCalculated", value: false });
-      dispatch({ type: "SET_FIELD", field: "error", value: null });
-
+  const generateHolidayPeriods = useCallback(
+    async (currentFormInputState: FormInputState) => {
       try {
-        // Call generateHolidayPeriods; it handles dispatching success, calculatedPeriods, and isCalculated.
-        generateHolidayPeriods(formData);
+        const periods: HolidayPeriod[] = calculateOptimizedHolidayPeriods(
+          currentFormInputState.strategy,
+          currentFormInputState.publicHolidays,
+          currentFormInputState.companyHolidays,
+          Number(currentFormInputState.userHolidays),
+          currentFormInputState.year
+        );
 
-        // Removed incorrect dispatches that were overwriting calculatedPeriods with undefined:
-        // dispatch({
-        //   type: "SET_FIELD",
-        //   field: "calculatedPeriods",
-        //   value: calculatedResults, // calculatedResults would have been undefined
-        // });
-        // dispatch({ type: "SET_FIELD", field: "status", value: "success" });
-        // dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
+        dispatch({ type: "SET_FIELD", field: "status", value: "success" });
+        dispatch({
+          type: "SET_FIELD",
+          field: "calculatedPeriods",
+          value: periods,
+        });
+        dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
       } catch (e) {
-        console.error("Error in generateResults:", e);
+        console.error("Error in generateHolidayPeriods:", e);
         const errorMessage =
           e instanceof Error
             ? e.message
@@ -139,61 +137,38 @@ export function FormResultsProvider({
       }
     },
     [dispatch]
-  ); // dispatch is stable, generateHolidayPeriods is part of component scope
+  );
+
+  const generateResults = useCallback(
+    (formData: FormInputState) => {
+      dispatch({ type: "SET_FIELD", field: "formInputState", value: formData });
+      dispatch({ type: "SET_FIELD", field: "status", value: "loading" });
+      dispatch({ type: "SET_FIELD", field: "isCalculated", value: false });
+      dispatch({ type: "SET_FIELD", field: "error", value: null });
+      generateHolidayPeriods(formData);
+    },
+    [dispatch, generateHolidayPeriods]
+  );
 
   const clearResults = useCallback(() => {
-    dispatch({ type: "RESET_RESULTS" }); // Corrected action type
+    dispatch({ type: "RESET_RESULTS" });
   }, [dispatch]);
 
-  function updateFormInputState(newFormInputState: FormInputState) {
-    dispatch({
-      type: "SET_FIELD",
-      field: "formInputState",
-      value: newFormInputState,
-    });
-    dispatch({ type: "SET_FIELD", field: "status", value: "loading" });
-    dispatch({ type: "SET_FIELD", field: "isCalculated", value: false });
-    dispatch({ type: "SET_FIELD", field: "error", value: null });
-
-    try {
-      // Call generateHolidayPeriods; it handles dispatching success, calculatedPeriods, and isCalculated.
-      generateHolidayPeriods(newFormInputState);
-
-      // Removed incorrect dispatches that were overwriting calculatedPeriods with undefined:
-      // dispatch({
-      //   type: "SET_FIELD",
-      //   field: "calculatedPeriods",
-      //   value: periods, // periods would have been undefined
-      // });
-      // dispatch({ type: "SET_FIELD", field: "status", value: "success" });
-      // dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
-    } catch (e) {
-      console.error(
-        "Error in updateFormInputState while generating periods:",
-        e
-      );
-      const errorMessage =
-        e instanceof Error ? e.message : "Failed to calculate optimal holidays";
-      dispatch({ type: "SET_FIELD", field: "error", value: errorMessage });
-      dispatch({ type: "SET_FIELD", field: "status", value: "error" });
+  const updateFormInputState = useCallback(
+    (newFormInputState: FormInputState) => {
+      dispatch({
+        type: "SET_FIELD",
+        field: "formInputState",
+        value: newFormInputState,
+      });
+      dispatch({ type: "SET_FIELD", field: "status", value: "loading" });
       dispatch({ type: "SET_FIELD", field: "isCalculated", value: false });
-    }
-  }
+      dispatch({ type: "SET_FIELD", field: "error", value: null });
+      generateHolidayPeriods(newFormInputState);
+    },
+    [dispatch, generateHolidayPeriods]
+  );
 
-  function generateHolidayPeriods(currentFormInputState: FormInputState) {
-    // Renamed param for clarity
-    const periods: HolidayPeriod[] = calculateOptimizedHolidayPeriods(
-      currentFormInputState.strategy,
-      currentFormInputState.publicHolidays,
-      currentFormInputState.companyHolidays,
-      Number(currentFormInputState.userHolidays),
-      currentFormInputState.year
-    );
-    // After calculation, dispatch actions to update the state
-    dispatch({ type: "SET_FIELD", field: "status", value: "success" });
-    dispatch({ type: "SET_FIELD", field: "calculatedPeriods", value: periods });
-    dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
-  }
   return (
     <FormResultsContext.Provider
       value={{
