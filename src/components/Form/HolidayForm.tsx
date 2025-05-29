@@ -129,8 +129,15 @@ export function HolidayForm() {
       companyHolidays: state.companyHolidays,
     };
 
-    // Scroll to the top of the page
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Scroll based on screen size
+    if (window.innerWidth >= 1024) { // lg breakpoint (desktop)
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else { // Mobile
+      const outputContainer = document.getElementById('output-container-wrapper');
+      if (outputContainer) {
+        outputContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
 
     setTimeout(() => {
       try {
