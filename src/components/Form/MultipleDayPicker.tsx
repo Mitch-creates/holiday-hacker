@@ -53,7 +53,6 @@ export default function MultipleDayPicker({
       updatedDays = [...selectedDays, day];
     }
     setSelectedDays(updatedDays);
-    console.log("Selected days", updatedDays);
     const companyHolidays: CompanyHoliday[] = updatedDays.map((day, index) => ({
       name: "Company day " + (index + 1), // Empty name that a user can fill in later if they want to
       date: day,

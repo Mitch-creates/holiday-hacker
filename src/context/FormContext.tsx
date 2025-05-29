@@ -73,7 +73,6 @@ export type FormAction =
 function reducer(state: FormState, action: FormAction) {
   switch (action.type) {
     case "SET_FIELD":
-      console.log(action);
       return {
         ...state,
         [action.field]: action.value,

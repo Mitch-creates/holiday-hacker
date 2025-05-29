@@ -187,8 +187,10 @@ export function FormResultsProvider({
       Number(currentFormInputState.userHolidays),
       currentFormInputState.year
     );
-    console.log("Generated holiday periods:", periods);
-    return periods;
+    // After calculation, dispatch actions to update the state
+    dispatch({ type: "SET_FIELD", field: "status", value: "success" });
+    dispatch({ type: "SET_FIELD", field: "calculatedPeriods", value: periods });
+    dispatch({ type: "SET_FIELD", field: "isCalculated", value: true });
   }
   return (
     <FormResultsContext.Provider
