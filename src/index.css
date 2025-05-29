@@ -48,6 +48,11 @@
   --color-theme-6: oklch(0.49 0.269 308.41);
   --color-theme-7: oklch(0.4 0.2 240.57);
   --color-theme-8: oklch(0.45 0.234 264.54);
+  --color-theme-9: oklch(0.6 0.118 184.704);
+  --color-theme-10: oklch(0.398 0.07 227.392);
+  --color-theme-11: oklch(0.552 0.016 285.938);
+
+  /* ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5", "#8bd3c7", #e4f7f5] */
 }
 
 :root {
@@ -126,4 +131,58 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes casting {
+  0% {
+    transform: rotate(0deg);
+    filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0.8));
+  }
+  25% {
+    transform: rotate(5deg) scale(1.05);
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+  }
+  50% {
+    transform: rotate(5deg) scale(1.1);
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+  }
+  75% {
+    transform: rotate(-5deg) scale(1.05);
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.8));
+  }
+  100% {
+    transform: rotate(5deg);
+    filter: drop-shadow(0 0 0px rgba(255, 255, 255, 0.8));
+  }
+}
+
+.wand-casting {
+  animation: casting 2s ease-in-out infinite;
+  transform-origin: 90% 90%;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.magic-particles {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.8) 1px,
+      transparent 1px
+    ),
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+  background-size: 18px 18px, 12px 12px, 8px 8px;
+  background-position: 0 0, 6px 6px, 4px 4px;
+  animation: sparkle 1.5s linear infinite;
+  pointer-events: none;
 }

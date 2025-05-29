@@ -1,4 +1,5 @@
 import { useHolidayForm } from "@/context/FormContext";
+import { Calendar } from "lucide-react";
 import { ReactNode } from "react";
 
 interface FormContainerProps {
@@ -14,8 +15,9 @@ export default function FormContainer({ children, title }: FormContainerProps) {
   return (
     <div className="border p-2.5 rounded-2xl shadow-sm bg-white space-y-2">
       <div className="flex p items-center justify-between">
-        <div className="flex items-center text-2xl font-semibold text-black pl-4">
-          {title}
+        <div className="flex items-center text-3xl gap-1 font-bold text-blue-300 pl-4">
+          <Calendar />
+          <span>{title}</span>
         </div>
         <select
           className="border rounded-md p-1 text-sm font-normal text-muted-foreground"

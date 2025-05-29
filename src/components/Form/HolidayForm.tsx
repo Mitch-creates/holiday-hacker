@@ -14,6 +14,7 @@ import {
   CalendarClock,
   CalendarRange,
   TreePalm,
+  Wand,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
@@ -21,6 +22,8 @@ import { ModifyHolidays } from "./ModifyHolidays";
 import FormContainer from "./FormContainer";
 import MultipleDayPicker from "./MultipleDayPicker";
 import { ModifyCompanyHolidays } from "./ModifyCompanyHolidays";
+import { useState } from "react";
+import { useFormResults } from "@/context/FormResultsContext";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -33,12 +36,9 @@ const formSchema = z.object({
     .int("Please enter a whole number")
     .min(1, "That number is too low")
     .max(365, "That number is too high"),
-  selectedTypeOfHoliday: z.enum(
-    ["longWeekend", "midWeek", "week", "extended"],
-    {
-      errorMap: () => ({ message: "Please select a type of holiday" }),
-    }
-  ),
+  strategy: z.enum(["longWeekend", "midWeek", "week", "extended"], {
+    errorMap: () => ({ message: "Please select a type of holiday" }),
+  }),
   selectedCountry: z.string().nonempty("Please select a country"),
   selectedRegion: z.string().default("default"),
 });
@@ -95,30 +95,44 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const {
-    updateFormContent,
-    updateCompanyHolidays,
-    updateUserHolidays,
-    state,
-  } = useHolidayForm();
+  const { updateUserHolidays, state } = useHolidayForm();
+  const { updateFormInputState } = useFormResults();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       userHolidays: 0,
-      selectedTypeOfHoliday: "longWeekend",
+      strategy: "longWeekend",
       selectedCountry: "",
       selectedRegion: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // const newFormContent = {
-    //   userHolidays: values.userHolidays,
-    //   selectedTypeOfHoliday: values.selectedTypeOfHoliday,
-    // };
-    // updateFormContent(newFormContent);
-    console.log(values);
+  function onSubmit() {
+    setIsGenerating(true);
+
+    // Create a snapshot of the current state
+    const formSnapshot = {
+      userHolidays: state.userHolidays,
+      year: state.year,
+      strategy: state.strategy,
+      selectedCountry: state.selectedCountry,
+      selectedRegion: state.selectedRegion,
+      publicHolidays: state.rawHolidays.filter(
+        (holiday) => !state.deletedHolidays.includes(holiday.date)
+      ),
+      companyHolidays: state.companyHolidays,
+    };
+
+    setTimeout(() => {
+      try {
+        // Pass the snapshot to results context
+        updateFormInputState(formSnapshot);
+      } finally {
+        setIsGenerating(false);
+      }
+    }, 2500);
   }
 
   function handleUserHolidaysChange(value: string) {
@@ -128,7 +142,7 @@ export function HolidayForm() {
 
   return (
     <Form {...form}>
-      <FormContainer title="Holiday planner">
+      <FormContainer title="Plan Your Holidays">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {/* This FormStepbox is responsible for the input of the amount of holidays the user has */}
           <FormStepBox
@@ -151,7 +165,7 @@ export function HolidayForm() {
               onValueChange={handleUserHolidaysChange}
             />
           </FormStepBox>
-          {/* This FormStepbox is responsible for letting the user choose which kind of time off he'd like to be optmized by the app */}
+          {/* This FormStepbox is responsible for letting the user choose which kind of time off he'd like to be optmized by the app => Strategy */}
           <FormStepBox
             stepIcon={
               <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />
@@ -202,8 +216,30 @@ export function HolidayForm() {
             <MultipleDayPicker themeColor="theme-7" showOutsideDays={true} />
             <ModifyCompanyHolidays themeColor="theme-7" />
           </FormStepBox>
+          {/*Submit button */}
+          <div className="flex justify-center">
+            <Button
+              type="submit"
+              className="w-full max-w-[300px] bg-blue-400 text-white cursor-pointer hover:bg-blue-500 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span
+                className={`flex items-center gap-2 ${
+                  isGenerating ? "opacity-80" : ""
+                }`}
+              >
+                <Wand
+                  className={`w-5 h-5 text-white ${
+                    isGenerating ? "wand-casting" : ""
+                  }`}
+                />
+                {isGenerating ? "Generating..." : "Generate result"}
+              </span>
 
-          <Button type="submit">Submit</Button>
+              {isGenerating && (
+                <span className="magic-particles" aria-hidden="true"></span>
+              )}
+            </Button>
+          </div>
         </form>
       </FormContainer>
     </Form>
