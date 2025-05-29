@@ -18,33 +18,37 @@ export default function TermsOfService() {
             </p>
           </div>
 
-          <div className="bg-white shadow-xl rounded-lg p-6 sm:p-8 lg:p-10 prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none">
-            <p className="text-sm text-gray-500">
+          <div className="bg-white shadow-xl rounded-lg p-6 sm:p-8 lg:p-10">
+            <p className="text-sm text-gray-500 mb-6">
               <strong>Last Updated:</strong> {lastUpdatedDate}
             </p>
 
-            <p>
+            <p className="text-gray-700 leading-relaxed mb-5">
               Welcome to Holiday Optimizer ("Application", "we", "us", "our").
               These Terms of Service ("Terms") govern your use of our
               Application. Please read these Terms carefully before accessing or
               using the Application.
             </p>
-            <p>
+            <p className="text-gray-700 leading-relaxed mb-5">
               By accessing or using the Application, you agree to be bound by
               these Terms. If you disagree with any part of the terms, then you
               may not access the Application.
             </p>
 
-            <h2>1. Use of the Application</h2>
-            <p>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4 pb-2 border-b border-gray-200">
+              1. Use of the Application
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-5">
               Holiday Optimizer is provided to help users plan and optimize
               their holiday periods based on public holidays and user-defined
               inputs. You agree to use the Application only for its intended
               purpose and in accordance with all applicable laws and
               regulations.
             </p>
-            <p>You agree not to:</p>
-            <ul>
+            <p className="text-gray-700 leading-relaxed mb-5">
+              You agree not to:
+            </p>
+            <ul className="list-disc list-inside pl-5 mb-5 space-y-1 text-gray-700 leading-relaxed">
               <li>
                 Use the Application in any way that could damage, disable,
                 overburden, or impair the Application.
@@ -66,8 +70,10 @@ export default function TermsOfService() {
               </li>
             </ul>
 
-            <h2>2. Intellectual Property</h2>
-            <p>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4 pb-2 border-b border-gray-200">
+              2. Intellectual Property
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-5">
               The Application and its original content (excluding content
               provided by users or third-party data like public holidays),
               features, and functionality are and will remain the exclusive
@@ -78,13 +84,15 @@ export default function TermsOfService() {
               service without the prior written consent of the Application's
               creators/owners.
             </p>
-            <p>
+            <p className="text-gray-700 leading-relaxed mb-5">
               The "Holiday Optimizer" name and logo are trademarks of the
               Application's creators/owners.
             </p>
 
-            <h2>3. Disclaimer of Warranties</h2>
-            <p>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4 pb-2 border-b border-gray-200">
+              3. Disclaimer of Warranties
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-5">
               The Application is provided on an "AS IS" and "AS AVAILABLE"
               basis. Your use of the Application is at your sole risk. The
               Application is provided without warranties of any kind, whether
@@ -92,14 +100,14 @@ export default function TermsOfService() {
               warranties of merchantability, fitness for a particular purpose,
               non-infringement, or course of performance.
             </p>
-            <p>
+            <p className="text-gray-700 leading-relaxed mb-5">
               We do not warrant that a) the Application will function
               uninterrupted, secure, or available at any particular time or
               location; b) any errors or defects will be corrected; c) the
               Application is free of viruses or other harmful components; or d)
               the results of using the Application will meet your requirements.
             </p>
-            <p>
+            <p className="text-gray-700 leading-relaxed mb-5">
               While we strive to provide accurate holiday data, we do not
               guarantee the accuracy or completeness of any information,
               including public holiday data, provided through the Application.
@@ -107,8 +115,10 @@ export default function TermsOfService() {
               any decisions based on it.
             </p>
 
-            <h2>4. Limitation of Liability</h2>
-            <p>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4 pb-2 border-b border-gray-200">
+              4. Limitation of Liability
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-5">
               In no event shall Holiday Optimizer, nor its directors, employees,
               partners, agents, suppliers, or affiliates, be liable for any
               indirect, incidental, special, consequential, or punitive damages,
@@ -125,8 +135,10 @@ export default function TermsOfService() {
               purpose.
             </p>
 
-            <h2>5. Indemnification</h2>
-            <p>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4 pb-2 border-b border-gray-200">
+              5. Indemnification
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-5">
               You agree to defend, indemnify, and hold harmless Holiday
               Optimizer and its licensee and licensors, and their employees,
               contractors, agents, officers, and directors, from and against any
@@ -136,15 +148,17 @@ export default function TermsOfService() {
               the Application, or b) a breach of these Terms.
             </p>
 
-            <h2>6. Governing Law</h2>
-            <p>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4 pb-2 border-b border-gray-200">
+              6. Governing Law
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-5">
               These Terms shall be governed and construed in accordance with the
               laws of [Your Jurisdiction - e.g., your country or state, if
               applicable, otherwise you can state "the jurisdiction in which the
               Application owner is based"], without regard to its conflict of
               law provisions.
             </p>
-            <p>
+            <p className="text-gray-700 leading-relaxed mb-5">
               Our failure to enforce any right or provision of these Terms will
               not be considered a waiver of those rights. If any provision of
               these Terms is held to be invalid or unenforceable by a court, the
@@ -154,8 +168,10 @@ export default function TermsOfService() {
               might have had between us regarding the Application.
             </p>
 
-            <h2>7. Changes to Terms</h2>
-            <p>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4 pb-2 border-b border-gray-200">
+              7. Changes to Terms
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-5">
               We reserve the right, at our sole discretion, to modify or replace
               these Terms at any time. If a revision is material, we will
               provide at least 30 days' notice prior to any new terms taking
@@ -163,20 +179,25 @@ export default function TermsOfService() {
               constitutes a material change will be determined at our sole
               discretion.
             </p>
-            <p>
+            <p className="text-gray-700 leading-relaxed mb-5">
               By continuing to access or use our Application after any revisions
               become effective, you agree to be bound by the revised terms. If
               you do not agree to the new terms, you are no longer authorized to
               use the Application.
             </p>
 
-            <h2>8. Contact Us</h2>
-            <p>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-10 mb-4 pb-2 border-b border-gray-200">
+              8. Contact Us
+            </h2>
+            <p className="text-gray-700 leading-relaxed mb-5">
               If you have any questions about these Terms, please contact us at:
             </p>
-            <p>
+            <p className="text-gray-700 leading-relaxed">
               Email:{" "}
-              <a href="mailto:feedback.optimizer@gmail.com">
+              <a
+                href="mailto:feedback.optimizer@gmail.com"
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
                 feedback.optimizer@gmail.com
               </a>
             </p>
