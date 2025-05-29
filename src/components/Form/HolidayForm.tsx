@@ -142,7 +142,7 @@ export function HolidayForm() {
 
   return (
     <Form {...form}>
-      <FormContainer title="Holiday planner">
+      <FormContainer title="Plan Your Holidays">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {/* This FormStepbox is responsible for the input of the amount of holidays the user has */}
           <FormStepBox
@@ -165,7 +165,7 @@ export function HolidayForm() {
               onValueChange={handleUserHolidaysChange}
             />
           </FormStepBox>
-          {/* This FormStepbox is responsible for letting the user choose which kind of time off he'd like to be optmized by the app */}
+          {/* This FormStepbox is responsible for letting the user choose which kind of time off he'd like to be optmized by the app => Strategy */}
           <FormStepBox
             stepIcon={
               <StepNumberIcon color="theme-3" textColor="theme-4" number={2} />

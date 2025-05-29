@@ -15,7 +15,8 @@ import {
   ListChecks, // Added for Strategy
   CheckCircle2,
   Flag,
-  CalendarCheck, // Added for Summary Title Icon
+  CalendarCheck,
+  ChartColumn, // Added for Summary Title Icon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -274,13 +275,15 @@ const SummaryItem: React.FC<SummaryItemProps> = ({
 }) => (
   <div
     className={`flex flex-col items-center justify-center p-3 ${
-      valueClassName ? `bg${valueClassName.substring(4)}/20` : ""
+      valueClassName ? `bg-${valueClassName}/20` : ""
     } rounded-lg shadow ${className || ""}`}
   >
-    {Icon && <Icon className={`w-5 h-5 mb-1 ${valueClassName}`} />}
+    {Icon && <Icon className={`w-5 h-5 mb-1 text-${valueClassName}`} />}
     <span className="text-xs text-slate-500">{label}</span>
     <span
-      className={`text-md font-semibold text-slate-700 ${valueClassName || ""}`}
+      className={`text-md font-semibold text-slate-700 text-${
+        valueClassName || ""
+      }`}
     >
       {value}
     </span>
@@ -385,11 +388,8 @@ export const OutputContainer: React.FC = () => {
         <Card className="shadow-sm border">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-700 flex items-center">
-              {" "}
-              {/* Added flex and items-center */}
-              <CheckCircle2 className="w-6 h-6 mr-2 text-theme-4" />{" "}
-              {/* Theme-4 for Summary title icon */}
-              Holiday Plan Summary
+              <ChartColumn className="w-6 h-6 mr-2 text-theme-9/70" />
+              <span className="text-theme-9/70">Calculation Statistics</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
@@ -397,36 +397,38 @@ export const OutputContainer: React.FC = () => {
               label="Total Days Off"
               value={totalDaysOff}
               icon={CheckCircle2}
+              valueClassName="theme-9"
             />
             <SummaryItem
               label="Public Holidays Used"
               value={totalPublicHolidaysUsed}
               icon={Flag}
-              valueClassName="text-theme-6"
+              valueClassName="theme-6"
             />
             <SummaryItem
               label="Company Holidays Used"
               value={totalCompanyHolidaysUsed}
               icon={Building2}
-              valueClassName="text-theme-8"
+              valueClassName="theme-8"
             />
             <SummaryItem
               label="User Holidays Used"
               value={totalUserHolidaysUsed}
-              icon={CalendarPlus}
-              valueClassName="text-theme-2"
+              icon={CalendarCheck}
+              valueClassName="theme-2"
             />
             <SummaryItem
               label="Year"
               value={formInputState.year}
               icon={CalendarDays}
+              valueClassName="theme-11"
             />
             <SummaryItem
               label="Strategy"
               value={displayStrategy}
               icon={ListChecks}
               className="capitalize"
-              valueClassName="text-theme-4"
+              valueClassName="theme-4"
             />
           </CardContent>
         </Card>

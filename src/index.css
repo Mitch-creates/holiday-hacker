@@ -48,7 +48,11 @@
   --color-theme-6: oklch(0.49 0.269 308.41);
   --color-theme-7: oklch(0.4 0.2 240.57);
   --color-theme-8: oklch(0.45 0.234 264.54);
-  /* ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5", "#8bd3c7"] */
+  --color-theme-9: oklch(0.6 0.118 184.704);
+  --color-theme-10: oklch(0.398 0.07 227.392);
+  --color-theme-11: oklch(0.552 0.016 285.938);
+
+  /* ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5", "#8bd3c7", #e4f7f5] */
 }
 
 :root {
