@@ -12,6 +12,7 @@ import {
   Flag as FlagIcon,
   CalendarCheck as CalendarCheckIcon,
   ChartColumn,
+  Sparkles, // Added for title icon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import HolidayPeriodCard from "./HolidayPeriodCard";
@@ -104,7 +105,24 @@ export const OutputContainer: React.FC = () => {
       "N/A";
 
     return (
-      <div className="mt-6">
+      <div className="mt-6 space-y-6">
+        {/* Title and Subtitle Section - Apply px-6 to this container for alignment */}
+        <div className="space-y-2 px-6">
+          <div className="flex items-center">
+            <Sparkles className="w-7 h-7 md:w-8 md:h-8 mr-2 text-theme-5" />
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+              Your Optimized Holiday Plan
+            </h1>
+          </div>
+          {/* Subtitle: text aligns with H1 text. Icon (w-7/8) + margin (mr-2) -> pl-9 / pl-10 */}
+          <p className="text-sm md:text-md text-gray-600 pl-9 md:pl-10">
+            Your optimized holidays are ready! Explore your plan and share the
+            benefits with friends.
+          </p>
+        </div>
+
+        <ShareSection />
+
         <Card className="shadow-sm border">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-700 flex items-center">
@@ -120,30 +138,35 @@ export const OutputContainer: React.FC = () => {
               value={totalDaysOff}
               icon={CheckCircle2}
               valueClassName="theme-9"
+              tooltip="The total number of consecutive days you'll be off work, including weekends and all types of holidays."
             />
             <SummaryItem
               label="Public Holidays Used"
               value={totalPublicHolidaysUsed}
               icon={FlagIcon}
               valueClassName="theme-6"
+              tooltip="The number of official public holidays that fall within your optimized holiday periods."
             />
             <SummaryItem
               label="Company Holidays Used"
               value={totalCompanyHolidaysUsed}
               icon={Building2}
               valueClassName="theme-8"
+              tooltip="The number of company-specific holidays that fall within your optimized holiday periods."
             />
             <SummaryItem
               label="User Holidays Used"
               value={totalUserHolidaysUsed}
               icon={CalendarCheckIcon}
               valueClassName="theme-2"
+              tooltip="The number of your personal annual leave days used to create these holiday periods."
             />
             <SummaryItem
               label="Year"
               value={formInputState.year}
               icon={CalendarDays}
               valueClassName="theme-11"
+              tooltip="The calendar year for which these holiday optimizations have been calculated."
             />
             <SummaryItem
               label="Strategy"
@@ -151,6 +174,7 @@ export const OutputContainer: React.FC = () => {
               icon={ListChecks}
               className="capitalize"
               valueClassName="theme-4"
+              tooltip="The optimization strategy you selected for generating your holiday periods."
             />
           </CardContent>
         </Card>
@@ -159,7 +183,7 @@ export const OutputContainer: React.FC = () => {
             <HolidayPeriodCard key={index} period={period} />
           ))}
         </div>
-        <ShareSection />
+        {/* ShareSection was here, now moved to the top */}
       </div>
     );
   }
