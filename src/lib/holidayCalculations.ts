@@ -1,104 +1,206 @@
-// ...existing code...
 import { CompanyHoliday } from "@/context/FormContext";
 import { HolidayPeriod, DayOff } from "@/context/FormResultsContext";
 import { HolidaysTypes } from "date-holidays";
 
 // ========== Types ==========
+/**
+ * Defines the available holiday optimization strategies.
+ * - `longWeekend`: Aims to create 3-4 day weekends.
+ * - `midWeek`: Aims for 5-6 day breaks that include a weekend.
+ * - `week`: Aims for 7-9 day breaks, typically including one full weekend.
+ * - `extended`: Aims for longer breaks of 10-15 days, often spanning multiple weekends.
+ */
 export type StrategyType = "longWeekend" | "midWeek" | "week" | "extended";
 
+/**
+ * Input parameters for a holiday calculation strategy.
+ */
 interface StrategyInput {
+  /** Array of public holidays for the selected year and region. */
   publicHolidays: HolidaysTypes.Holiday[];
+  /** Array of company-specific holidays. */
   companyHolidays: CompanyHoliday[];
+  /** Number of vacation days the user has available. */
   userHolidayCount: number;
+  /** The year for which to calculate holidays. */
   year: string;
+  /** Optional: The current date, used to filter out past periods. Defaults to today. */
   today?: Date;
 }
 
-// New types for generic strategy
+/**
+ * Represents a potential holiday period candidate during calculation.
+ */
 interface PeriodCandidate {
+  /** Array of all dates included in this potential period. */
   periodDays: Date[];
+  /** Number of user's own vacation days used in this period. */
   userDays: number;
+  /** Number of public holidays falling within this period. */
   publicDays: number;
+  /** Number of company holidays falling within this period. */
   companyDays: number;
+  /** Number of weekend days (Saturday, Sunday) in this period. */
   weekendDays: number;
+  /** Total length of the period in days. */
   length: number;
-  score?: number; // Score will be calculated by the strategy
-  // Allow for strategy-specific properties to be added for scoring/description
+  /** Calculated score for this candidate, used for ranking. Higher is better. */
+  score?: number;
+  /** Optional: Number of consecutive holidays (public, company, weekend) at the end of the period. Used by some strategies. */
   consecutiveHolidays?: number;
+  /** Optional: Maximum number of consecutive holidays (public, company, weekend) found anywhere in the period. Used by some strategies. */
   maxConsecutiveHolidays?: number;
+  /** Optional: Sum of holiday densities for each day in the period. Used by 'extended' strategy. */
   totalHolidayDensity?: number;
 }
 
+/**
+ * Data that can be precomputed once per strategy execution to optimize calculations.
+ */
 interface PrecomputedData {
+  /** Optional: Map of date strings to a "holiday density" score, used by 'extended' strategy. */
   holidayDensityMap?: Map<string, number>;
+  /** Optional: The target year as a number. */
   yearNum?: number;
-  // Add other potential precomputed properties here
 }
 
+/**
+ * Configuration for a specific holiday calculation strategy.
+ * Defines how to find, filter, score, and describe holiday periods.
+ */
 interface StrategyConfig {
+  /** The type of strategy this configuration applies to. */
   strategyType: StrategyType;
-  // Defines the lengths of periods to search for, can be an array of arrays for multi-pass strategies
+  /**
+   * Defines the lengths of periods to search for.
+   * Can be an array of arrays for multi-pass strategies (e.g., search for 4-day periods first, then 3-day).
+   */
   periodLengthPasses: ReadonlyArray<ReadonlyArray<number>>;
-  // Filters for the start day of a potential period
+  /**
+   * Optional filter for the start day of a potential period.
+   * @param date - The potential start date.
+   * @param periodLength - The length of the period being considered.
+   * @param passIndex - The current pass index in a multi-pass strategy.
+   * @returns True if the start date is valid, false otherwise.
+   */
   periodStartDateFilter?: (
     date: Date,
     periodLength: number,
     passIndex: number
   ) => boolean;
-  // Filters for the end day of a potential period
+  /**
+   * Optional filter for the end day of a potential period.
+   * @param endDate - The potential end date.
+   * @param periodLength - The length of the period being considered.
+   * @param passIndex - The current pass index in a multi-pass strategy.
+   * @returns True if the end date is valid, false otherwise.
+   */
   periodEndDateFilter?: (
     endDate: Date,
     periodLength: number,
     passIndex: number
   ) => boolean;
-  // Minimum number of weekend days required in a valid period
+  /**
+   * Minimum number of weekend days required in a valid period.
+   * @param length - The length of the period.
+   * @param passIndex - The current pass index.
+   * @returns The minimum number of weekend days.
+   */
   minWeekendDaysInPeriod: (length: number, passIndex: number) => number;
-  // Function to determine if the number of user days for a candidate period is acceptable
+  /**
+   * Function to determine if the number of user days for a candidate period is acceptable.
+   * @param userDaysInCandidate - Number of user days in the current candidate period.
+   * @param availableUserHolidays - Total user holidays remaining.
+   * @param periodLength - The length of the candidate period.
+   * @param passIndex - The current pass index.
+   * @returns True if the user day count is valid, false otherwise.
+   */
   userDaysValidatorFn: (
     userDaysInCandidate: number,
     availableUserHolidays: number,
     periodLength: number,
     passIndex: number
   ) => boolean;
-  // More complex custom filter for a candidate after basic checks
+  /**
+   * Optional custom filter for a candidate after basic checks (length, user days, weekend days).
+   * @param candidate - The period candidate to evaluate.
+   * @param allHolidaysMap - Map of all public and company holidays.
+   * @param passIndex - The current pass index.
+   * @param precomputedData - Optional precomputed data for the strategy.
+   * @returns True if the candidate is valid, false otherwise.
+   */
   candidateFilterFn?: (
     candidate: PeriodCandidate,
     allHolidaysMap: Map<string, DayOff>,
     passIndex: number,
     precomputedData?: PrecomputedData
   ) => boolean;
-  // Scores a candidate period. Higher is better.
+  /**
+   * Scores a candidate period. Higher scores are preferred.
+   * @param candidate - The period candidate to score.
+   * @param passIndex - The current pass index.
+   * @param precomputedData - Optional precomputed data for the strategy.
+   * @returns The calculated score.
+   */
   candidateScoringFn: (
     candidate: PeriodCandidate,
     passIndex: number,
     precomputedData?: PrecomputedData
   ) => number;
-  // Generates a description for the resulting holiday period
+  /**
+   * Generates a human-readable description for the resulting holiday period.
+   * @param period - The final holiday period.
+   * @param candidateData - The candidate data from which this period was derived.
+   * @param precomputedData - Optional precomputed data.
+   * @returns A string description of the holiday period.
+   */
   descriptionFn: (
     period: HolidayPeriod,
     candidateData: PeriodCandidate,
     precomputedData?: PrecomputedData
   ) => string;
-  // Minimum total user holidays required to even attempt this strategy
+  /** Optional: Minimum total user holidays required to even attempt this strategy. */
   minTotalUserHolidaysRequiredForStrategy?: number;
-  // Optional pre-computation step, returns data to be passed to other functions
+  /**
+   * Optional pre-computation step, executed once per strategy.
+   * @param input - The strategy input.
+   * @param allHolidaysMap - Map of all public and company holidays.
+   * @returns Data to be passed to other functions like scoring or filtering.
+   */
   precomputeFn?: (
     input: StrategyInput,
     allHolidaysMap: Map<string, DayOff>
   ) => PrecomputedData;
 }
 
-// ========== Helpers (some might be localized or modified) ==========
+// ========== Helpers ==========
 
+/**
+ * Converts a Date object to an ISO string (YYYY-MM-DD).
+ * @param date - The date to convert.
+ * @returns The date as an ISO string.
+ */
 function toIso(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+/**
+ * Checks if a given date is a weekend (Saturday or Sunday).
+ * @param date - The date to check.
+ * @returns True if the date is a weekend, false otherwise.
+ */
 function isWeekend(date: Date): boolean {
   const day = date.getDay();
-  return day === 0 || day === 6;
+  return day === 0 || day === 6; // 0 for Sunday, 6 for Saturday
 }
 
+/**
+ * Combines public and company holidays into a single map, keyed by ISO date string.
+ * Weekends that are also holidays are removed.
+ * @param publicHolidays - Array of public holidays.
+ * @param companyHolidays - Array of company holidays.
+ * @returns A Map where keys are ISO date strings and values are DayOff objects.
+ */
 function combineHolidays(
   publicHolidays: HolidaysTypes.Holiday[],
   companyHolidays: CompanyHoliday[]
@@ -122,10 +224,15 @@ function combineHolidays(
       name: ch.name,
     });
   }
-  // The purgeWeekends call means allHolidaysMap won't contain holidays that are also weekends.
+  // Remove holidays that fall on a weekend, as they don't consume a weekday slot.
   return purgeWeekends(allHolidaysMap);
 }
 
+/**
+ * Removes holidays from a map if they fall on a weekend.
+ * @param holidays - A map of holidays.
+ * @returns The modified map with weekend holidays removed.
+ */
 function purgeWeekends(holidays: Map<string, DayOff>): Map<string, DayOff> {
   const keysToDelete: string[] = [];
   holidays.forEach((holiday, key) => {
@@ -138,6 +245,13 @@ function purgeWeekends(holidays: Map<string, DayOff>): Map<string, DayOff> {
 }
 
 // ========== Generic Calculation Engine ==========
+/**
+ * Core engine for executing a holiday calculation strategy.
+ * It iterates through potential periods, filters, scores, and selects the best ones.
+ * @param input - The strategy input data.
+ * @param config - The configuration for the specific strategy to execute.
+ * @returns An array of optimized HolidayPeriod objects, sorted by start date.
+ */
 function executeHolidayStrategy(
   input: StrategyInput,
   config: StrategyConfig
@@ -415,6 +529,7 @@ function executeHolidayStrategy(
 
 // ========== Strategy Configurations ==========
 
+/** Configuration for the 'longWeekend' strategy. */
 const longWeekendConfig: StrategyConfig = {
   strategyType: "longWeekend",
   periodLengthPasses: [[4], [3]],
@@ -433,6 +548,7 @@ const longWeekendConfig: StrategyConfig = {
   descriptionFn: (period) => `${period.totalDaysOff}-day long weekend`,
 };
 
+/** Configuration for the 'midWeek' strategy. */
 const midWeekConfig: StrategyConfig = {
   strategyType: "midWeek",
   periodLengthPasses: [[6, 5]],
@@ -457,173 +573,63 @@ const midWeekConfig: StrategyConfig = {
   descriptionFn: (period) => `${period.totalDaysOff}-day midweek break`,
 };
 
+/** Configuration for the \'week\' strategy. */
 const weekConfig: StrategyConfig = {
   strategyType: "week",
   periodLengthPasses: [[9, 8, 7]],
-  minWeekendDaysInPeriod: () => 2,
+  periodStartDateFilter: (date) => date.getDay() !== 0, // Not Sunday
+  periodEndDateFilter: (endDate) => endDate.getDay() !== 6, // Not Saturday
+  minWeekendDaysInPeriod: (length) => 2, // At least 2 weekend days
   userDaysValidatorFn: (userDaysInCandidate, availableUserHolidays) => {
     return userDaysInCandidate <= availableUserHolidays;
+  },
+  candidateFilterFn: (candidate) => {
+    return candidate.weekendDays === 2; // Must be exactly 2 weekend days
   },
   candidateScoringFn: (candidate) => {
     const holidayDays = candidate.publicDays + candidate.companyDays;
-    const efficiency = (holidayDays + candidate.weekendDays) / candidate.length;
-    const publicHolidayCluster = (candidate.maxConsecutiveHolidays || 0) >= 3; // Added fallback for undefined
     return (
-      efficiency * 100 +
       holidayDays * 10 +
-      candidate.weekendDays * 5 +
-      (publicHolidayCluster ? 50 : 0) +
-      (candidate.length - 7) * 3 -
-      candidate.userDays * 3
+      candidate.weekendDays * 5 -
+      candidate.userDays * 3 +
+      (candidate.length === 9 ? 4 : candidate.length === 8 ? 2 : 0)
     );
   },
-  descriptionFn: (period, candidateData) => {
-    let description = `${period.totalDaysOff}-day week break`;
-    if ((candidateData.maxConsecutiveHolidays || 0) >= 3) {
-      // Added fallback for undefined
-      description = `${period.totalDaysOff}-day break around public holidays`;
-    } else if (period.weekendDays >= 4) {
-      description = `${period.totalDaysOff}-day break including multiple weekends`;
-    } else if (period.publicHolidaysUsed >= 2) {
-      description = `${period.totalDaysOff}-day break with public holidays`;
-    }
-    return description;
-  },
+  descriptionFn: (period) => `${period.totalDaysOff}-day week break`,
 };
 
+/** Configuration for the 'extended' strategy. */
 const extendedConfig: StrategyConfig = {
   strategyType: "extended",
-  periodLengthPasses: [[15, 14, 13, 12, 11, 10]],
-  minWeekendDaysInPeriod: () => 4,
-  minTotalUserHolidaysRequiredForStrategy: 5,
+  periodLengthPasses: [
+    [15, 14, 13],
+    [12, 11, 10],
+  ],
+  periodStartDateFilter: (date) => date.getDay() !== 0, // Not Sunday
+  periodEndDateFilter: (endDate) => endDate.getDay() !== 6, // Not Saturday
+  minWeekendDaysInPeriod: (length) => 2, // At least 2 weekend days
   userDaysValidatorFn: (userDaysInCandidate, availableUserHolidays) => {
     return userDaysInCandidate <= availableUserHolidays;
   },
-  precomputeFn: (input, allHolidaysMap) => {
-    const holidayDensityMap = new Map<string, number>();
-    const scanWindow = 14;
-    const yearNum = Number(input.year);
-    const startDateOfYear = new Date(yearNum, 0, 1);
-    const endDateOfYear = new Date(yearNum, 11, 31);
-
-    for (
-      let d = new Date(startDateOfYear);
-      d <= endDateOfYear;
-      d.setDate(d.getDate() + 1)
-    ) {
-      let localDensity = 0;
-      for (let i = -scanWindow / 2; i <= scanWindow / 2; i++) {
-        const scanDate = new Date(d);
-        scanDate.setDate(d.getDate() + i);
-        if (scanDate.getFullYear() !== yearNum) continue;
-        const scanIso = toIso(scanDate);
-        if (allHolidaysMap.has(scanIso)) localDensity += 3;
-        else if (isWeekend(scanDate)) localDensity += 1;
-      }
-      holidayDensityMap.set(toIso(d), localDensity);
-    }
-    return { holidayDensityMap, yearNum };
+  candidateFilterFn: (candidate) => {
+    return candidate.weekendDays === 2; // Must be exactly 2 weekend days
   },
-  candidateScoringFn: (candidate, _passIndex, precomputedData) => {
+  candidateScoringFn: (candidate, passIndex, precomputedData) => {
     const holidayDays = candidate.publicDays + candidate.companyDays;
-    const efficiency = (holidayDays + candidate.weekendDays) / candidate.length;
-
-    const yearNum = precomputedData?.yearNum; // Access yearNum safely
-    if (yearNum === undefined) {
-      // Handle missing yearNum, perhaps return a default score or throw error
-      return 0;
-    }
-    const summerStart = new Date(yearNum, 5, 15);
-    const summerEnd = new Date(yearNum, 8, 15);
-    const winterStart = new Date(yearNum, 11, 15);
-    const endDateOfYear = new Date(yearNum, 11, 31);
-
-    const isSummerPeriod =
-      candidate.periodDays[0] >= summerStart &&
-      candidate.periodDays[0] <= summerEnd;
-    const isWinterPeriod =
-      candidate.periodDays[0] >= winterStart &&
-      candidate.periodDays[0] <= endDateOfYear;
-
-    const seasonBonus = isSummerPeriod || isWinterPeriod ? 50 : 0;
-    const avgDensity = (candidate.totalHolidayDensity || 0) / candidate.length;
-
-    return (
-      efficiency * 150 +
-      avgDensity * 10 +
-      seasonBonus +
-      holidayDays * 15 +
-      candidate.weekendDays * 7 +
-      (candidate.length - 10) * 5 -
-      candidate.userDays * 2
-    );
+    const baseScore =
+      holidayDays * 10 + candidate.weekendDays * 5 - candidate.userDays * 3;
+    if (passIndex === 0 && candidate.length === 15) return baseScore + 6;
+    if (passIndex === 0 && candidate.length === 14) return baseScore + 4;
+    if (passIndex === 0 && candidate.length === 13) return baseScore + 2;
+    return baseScore;
   },
-  descriptionFn: (period, candidateData, precomputedData) => {
-    let description = `${period.totalDaysOff}-day extended break`;
-    const yearNum = precomputedData?.yearNum; // Access yearNum safely
-    if (yearNum === undefined) {
-      // Handle missing yearNum
-      return description;
-    }
-    const summerStart = new Date(yearNum, 5, 15);
-    const summerEnd = new Date(yearNum, 8, 15);
-    const winterStart = new Date(yearNum, 11, 15);
-    const endDateOfYear = new Date(yearNum, 11, 31);
-
-    const isSummer =
-      period.startDate >= summerStart && period.startDate <= summerEnd;
-    const isWinter =
-      period.startDate >= winterStart && period.startDate <= endDateOfYear;
-    const avgDensity =
-      (candidateData.totalHolidayDensity || 0) / period.totalDaysOff;
-
-    if (isSummer) {
-      description = `${period.totalDaysOff}-day summer vacation`;
-    } else if (isWinter) {
-      description = `${period.totalDaysOff}-day winter holiday`;
-    } else if (avgDensity > 1.0) {
-      description = `${period.totalDaysOff}-day extended break around holidays`;
-    } else if (period.weekendDays >= 6) {
-      description = `${period.totalDaysOff}-day multi-weekend vacation`;
-    }
-    return description;
-  },
+  descriptionFn: (period) => `${period.totalDaysOff}-day extended break`,
 };
 
-// ========== Orchestrator and Strategy Map ==========
-const strategyConfigMap: Record<StrategyType, StrategyConfig> = {
-  longWeekend: longWeekendConfig,
-  midWeek: midWeekConfig,
-  week: weekConfig,
-  extended: extendedConfig,
+export {
+  executeHolidayStrategy,
+  longWeekendConfig,
+  midWeekConfig,
+  weekConfig,
+  extendedConfig,
 };
-
-export function calculateOptimizedHolidayPeriods(
-  strategyType: StrategyType,
-  publicHolidays: HolidaysTypes.Holiday[],
-  companyHolidays: CompanyHoliday[],
-  userHolidayCount: number,
-  year: string,
-  today?: Date
-): HolidayPeriod[] {
-  const config = strategyConfigMap[strategyType];
-  if (!config) {
-    console.error(`Strategy configuration for ${strategyType} not found.`);
-    return []; // Or throw new Error(`Strategy configuration for ${strategyType} not found.`);
-  }
-  return executeHolidayStrategy(
-    {
-      publicHolidays,
-      companyHolidays,
-      userHolidayCount,
-      year,
-      today,
-    },
-    config
-  );
-}
-
-// Remove the old individual calculate... functions (calculateLongWeekendPeriods, calculateMidweekPeriods, etc.)
-// as their logic is now encapsulated in the config objects and processed by executeHolidayStrategy.
-// The old strategyMap is also replaced by strategyConfigMap.
-// The old buildPeriod function is not directly used; its logic for creating DayOff[] is within executeHolidayStrategy.

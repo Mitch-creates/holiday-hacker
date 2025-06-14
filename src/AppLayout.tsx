@@ -1,20 +1,18 @@
 import { HolidayForm } from "./components/Form/HolidayForm";
 import OutputContainer from "./components/Output/OutputContainer";
 import { useFormResults } from "./context/FormResultsContext";
-import Header from "./components/Layout/Header"; // Added import
-import Footer from "./components/Layout/Footer"; // Added import
+import Header from "./components/Layout/Header";
+import Footer from "./components/Layout/Footer";
 
 export default function AppLayout() {
-  // Get isCalculated from the FormContext
   const { state } = useFormResults();
-  // const hasGeneratedResult = state.isCalculated; // Previous logic
-  const showOutputArea = state.status !== "idle"; // New logic: show if not idle
+  const showOutputArea = state.status !== "idle";
 
   return (
     <>
       {/* Main container for the entire app layout */}
       <div className="flex flex-col min-h-screen">
-        <Header /> {/* Added Header component */}
+        <Header />
         {/* Title and Subtitle Section */}
         <div className="text-center px-4 py-8 bg-background">
           <h1 className="text-1xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl lg:text-4xl">
@@ -30,18 +28,15 @@ export default function AppLayout() {
           // This code makes sure that the form is always centered in the middle of the screen
           // and that the form is always 100% width on mobile and 33.3333% width on desktop
           className={`flex-grow px-4 py-8 flex ${
-            showOutputArea // Use new logic here
+            showOutputArea
               ? "flex-col lg:flex-row gap-8"
               : "justify-center items-center"
           }`}
         >
-          {/* Form Container */}
           <section
             aria-label="Holiday Calculation Form"
             className={`${
-              showOutputArea // And here
-                ? "w-full lg:max-w-[33.3333%]"
-                : "w-full max-w-xl"
+              showOutputArea ? "w-full lg:max-w-[33.3333%]" : "w-full max-w-xl"
             } transition-all mb-8 lg:mb-0`}
           >
             <HolidayForm></HolidayForm>
@@ -56,7 +51,7 @@ export default function AppLayout() {
             </section>
           )}
         </main>
-        <Footer /> {/* Added Footer component */}
+        <Footer />
       </div>
     </>
   );

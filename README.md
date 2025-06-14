@@ -33,3 +33,9 @@ Cons:
 - Less flexibility (I can't simply add new properties)
 
 I chose to use the exported interface since it fits my needs and I didn't need extra properties.
+
+# Project Goals
+
+1.  **Flexible Work Weeks:** Add functionality to support non Monday-to-Friday work schedules (e.g., 4-day work weeks, custom weekend days).
+2.  **Custom Holiday Strategies:** Implement a feature allowing users to define a custom number of holiday periods they want the optimizer to generate, providing more granular control over the output.
+3.  **Flight Integration:** For each generated holiday period, integrate functionality to suggest potentially cheap flight options, adding travel planning value.
