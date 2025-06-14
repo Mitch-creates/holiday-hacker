@@ -16,6 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import HolidayPeriodCard from "./HolidayPeriodCard";
 import SummaryItem from "./SummaryItem";
+import ShareSection from "./ShareSection";
 
 export const OutputContainer: React.FC = () => {
   const { state } = useFormResults();
@@ -158,6 +159,7 @@ export const OutputContainer: React.FC = () => {
             <HolidayPeriodCard key={index} period={period} />
           ))}
         </div>
+        <ShareSection />
       </div>
     );
   }

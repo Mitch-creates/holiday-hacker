@@ -626,10 +626,54 @@ const extendedConfig: StrategyConfig = {
   descriptionFn: (period) => `${period.totalDaysOff}-day extended break`,
 };
 
+const strategyConfigMap: Record<StrategyType, StrategyConfig> = {
+  longWeekend: longWeekendConfig,
+  midWeek: midWeekConfig,
+  week: weekConfig,
+  extended: extendedConfig,
+};
+
+/**
+ * Calculates optimized holiday periods based on the selected strategy and user inputs.
+ * This is the main exported function for holiday calculations.
+ * @param strategyType - The desired holiday optimization strategy.
+ * @param publicHolidays - Array of public holidays.
+ * @param companyHolidays - Array of company-specific holidays.
+ * @param userHolidayCount - Number of vacation days the user has available.
+ * @param year - The year for which to calculate holidays.
+ * @param today - Optional: The current date, used to filter out past periods. Defaults to today.
+ * @returns An array of calculated HolidayPeriod objects, or an empty array if the strategy is not found or an error occurs.
+ */
+export function calculateOptimizedHolidayPeriods(
+  strategyType: StrategyType,
+  publicHolidays: HolidaysTypes.Holiday[],
+  companyHolidays: CompanyHoliday[],
+  userHolidayCount: number,
+  year: string,
+  today?: Date
+): HolidayPeriod[] {
+  const config = strategyConfigMap[strategyType];
+  if (!config) {
+    console.error(`Strategy configuration for ${strategyType} not found.`);
+    return [];
+  }
+  return executeHolidayStrategy(
+    {
+      publicHolidays,
+      companyHolidays,
+      userHolidayCount,
+      year,
+      today,
+    },
+    config
+  );
+}
+
 export {
   executeHolidayStrategy,
   longWeekendConfig,
   midWeekConfig,
   weekConfig,
   extendedConfig,
+  // calculateOptimizedHolidayPeriods, // Already exported above
 };
