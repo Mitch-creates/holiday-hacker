@@ -36,7 +36,8 @@ export default function AppLayout() {
           }`}
         >
           {/* Form Container */}
-          <div
+          <section
+            aria-label="Holiday Calculation Form"
             className={`${
               showOutputArea // And here
                 ? "w-full lg:max-w-[33.3333%]"
@@ -44,14 +45,15 @@ export default function AppLayout() {
             } transition-all mb-8 lg:mb-0`}
           >
             <HolidayForm></HolidayForm>
-          </div>
+          </section>
           {showOutputArea && (
-            <div
+            <section
+              aria-label="Optimized Holiday Results"
               id="output-container-wrapper"
               className="w-full lg:flex-1 border p-4 rounded-2xl shadow-sm mb-6 bg-white space-y-2"
             >
               <OutputContainer></OutputContainer>
-            </div>
+            </section>
           )}
         </main>
         <Footer /> {/* Added Footer component */}

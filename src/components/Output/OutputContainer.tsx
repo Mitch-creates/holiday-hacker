@@ -102,18 +102,15 @@ export const OutputContainer: React.FC = () => {
       calculatedPeriods[0]?.type.replace("_", " ") ||
       "N/A";
 
-    // Removed containerClassName logic related to blur
-
     return (
-      // Removed relative positioning and loader overlay
       <div className="mt-6">
-        {" "}
-        {/* Added margin-top for spacing */}
         <Card className="shadow-sm border">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-700 flex items-center">
               <ChartColumn className="w-6 h-6 mr-2 text-theme-9/70" />
-              <span className="text-theme-9/70">Calculation Statistics</span>
+              <h2 className="text-theme-9/70 text-xl font-bold">
+                Optimization Statistics
+              </h2>
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">

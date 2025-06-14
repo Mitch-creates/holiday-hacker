@@ -29,9 +29,9 @@ export function FormStepBox({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {stepIcon && <div>{stepIcon}</div>}
-          <div className={`text-sm font-semibold text-${themeColor2}`}>
+          <h2 className={`text-sm font-semibold text-${themeColor2}`}>
             {title}
-          </div>
+          </h2>
         </div>
 
         <TooltipProvider>
@@ -45,9 +45,7 @@ export function FormStepBox({
           </Tooltip>
         </TooltipProvider>
       </div>
-      <div className="text-sm font-normal text-muted-foreground mb-4">
-        {label}
-      </div>
+      <p className="text-sm font-normal text-muted-foreground mb-4">{label}</p>
       <div>{children}</div>
     </div>
   );

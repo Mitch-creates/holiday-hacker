@@ -4,6 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import MiniCalendarDay from "./MiniCalendarDay";
 import { formatDateRange } from "@/lib/utils";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   CalendarCheck as CalendarCheckIcon,
   Building2,
   Flag as FlagIcon,
@@ -79,7 +85,9 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-md font-semibold text-gray-700">
-              {formatDateRange(period.startDate, period.endDate)}
+              <h3 className="text-md font-semibold text-gray-700">
+                {formatDateRange(period.startDate, period.endDate)}
+              </h3>
             </CardTitle>
             {period.description && (
               <p className="text-xs text-muted-foreground">
@@ -96,37 +104,67 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
-        {/* Changed from grid to flex layout for icons */}
-        <div className="flex flex-wrap justify-start items-center gap-x-4 gap-y-2 mb-3 text-xs text-center">
-          <div className="flex flex-col items-center">
-            <CalendarCheckIcon className="w-4 h-4 mb-0.5 text-theme-2" />
-            <span className={`font-medium text-theme-2`}>
-              {period.userHolidaysUsed}
-            </span>
+        <TooltipProvider>
+          <div className="flex flex-wrap justify-start items-center gap-x-4 gap-y-2 mb-3 text-xs text-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex flex-col items-center cursor-default">
+                  <CalendarCheckIcon className="w-4 h-4 mb-0.5 text-theme-2" />
+                  <span className={`font-medium text-theme-2`}>
+                    {period.userHolidaysUsed}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Your Holidays Used</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {period.companyHolidaysUsed > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center cursor-default">
+                    <Building2 className="w-4 h-4 mb-0.5 text-theme-8" />
+                    <span className={`font-medium text-theme-8`}>
+                      {period.companyHolidaysUsed}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Company Holidays Used</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {period.publicHolidaysUsed > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center cursor-default">
+                    <FlagIcon className="w-4 h-4 mb-0.5 text-theme-6" />
+                    <span className={`font-medium text-theme-6`}>
+                      {period.publicHolidaysUsed}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Public Holidays Used</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex flex-col items-center cursor-default">
+                  <Clock className="w-4 h-4 mb-0.5 text-gray-600" />
+                  <span className="font-medium text-gray-600">
+                    {period.weekendDays}
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Weekend Days Used</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
-          {period.companyHolidaysUsed > 0 && (
-            <div className="flex flex-col items-center">
-              <Building2 className="w-4 h-4 mb-0.5 text-theme-8" />
-              <span className={`font-medium text-theme-8`}>
-                {period.companyHolidaysUsed}
-              </span>
-            </div>
-          )}
-          {period.publicHolidaysUsed > 0 && (
-            <div className="flex flex-col items-center">
-              <FlagIcon className="w-4 h-4 mb-0.5 text-theme-6" />
-              <span className={`font-medium text-theme-6`}>
-                {period.publicHolidaysUsed}
-              </span>
-            </div>
-          )}
-          <div className="flex flex-col items-center">
-            <Clock className="w-4 h-4 mb-0.5 text-gray-600" />
-            <span className="font-medium text-gray-600">
-              {period.weekendDays}
-            </span>
-          </div>
-        </div>
+        </TooltipProvider>
 
         <div className="grid grid-cols-7 gap-0.5">
           {weekdayHeaders.map((header) => (
