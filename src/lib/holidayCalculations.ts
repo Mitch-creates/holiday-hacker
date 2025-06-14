@@ -579,7 +579,7 @@ const weekConfig: StrategyConfig = {
   periodLengthPasses: [[9, 8, 7]],
   periodStartDateFilter: (date) => date.getDay() !== 0, // Not Sunday
   periodEndDateFilter: (endDate) => endDate.getDay() !== 6, // Not Saturday
-  minWeekendDaysInPeriod: (length) => 2, // At least 2 weekend days
+  minWeekendDaysInPeriod: () => 2, // At least 2 weekend days
   userDaysValidatorFn: (userDaysInCandidate, availableUserHolidays) => {
     return userDaysInCandidate <= availableUserHolidays;
   },
@@ -607,14 +607,14 @@ const extendedConfig: StrategyConfig = {
   ],
   periodStartDateFilter: (date) => date.getDay() !== 0, // Not Sunday
   periodEndDateFilter: (endDate) => endDate.getDay() !== 6, // Not Saturday
-  minWeekendDaysInPeriod: (length) => 2, // At least 2 weekend days
+  minWeekendDaysInPeriod: () => 2, // At least 2 weekend days
   userDaysValidatorFn: (userDaysInCandidate, availableUserHolidays) => {
     return userDaysInCandidate <= availableUserHolidays;
   },
   candidateFilterFn: (candidate) => {
     return candidate.weekendDays === 2; // Must be exactly 2 weekend days
   },
-  candidateScoringFn: (candidate, passIndex, precomputedData) => {
+  candidateScoringFn: (candidate, passIndex) => {
     const holidayDays = candidate.publicDays + candidate.companyDays;
     const baseScore =
       holidayDays * 10 + candidate.weekendDays * 5 - candidate.userDays * 3;
