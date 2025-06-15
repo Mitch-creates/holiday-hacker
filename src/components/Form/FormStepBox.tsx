@@ -25,7 +25,7 @@ export function FormStepBox({
   themeColor2,
 }: FormStepBoxProps) {
   return (
-    <div className="border p-4 rounded-2xl shadow-sm mb-6 bg-white space-y-2">
+    <div className="p-4 rounded-2xl shadow-sm mb-6 bg-white space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {stepIcon && <div>{stepIcon}</div>}

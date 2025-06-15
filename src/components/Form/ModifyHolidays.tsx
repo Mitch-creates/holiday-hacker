@@ -48,12 +48,16 @@ export function ModifyHolidays({
           State/Region selection.
         </p>
         {modifiableHolidays.length > 0 && (
-          <div className="rounded-md border p-4">
-            <ul className="space-y-2">
-              {modifiableHolidays?.map((holiday) => (
+          <div className="rounded-md border">
+            <ul className="space-y-0">
+              {modifiableHolidays?.map((holiday, index) => (
                 <li
                   key={holiday.date}
-                  className="flex items-center justify-between rounded-md border p-2"
+                  className={`flex items-center justify-between py-3 px-4 ${
+                    index === modifiableHolidays.length - 1
+                      ? "border-b-0"
+                      : "border-b"
+                  }`}
                 >
                   <div>
                     <div className="text-xs font-medium">{holiday.name}</div>

@@ -60,12 +60,16 @@ export function ModifyCompanyHolidays({
           <span>Delete all</span>
         </Button>
       </div>
-      <div className="rounded-md border p-4 mt-2">
-        <ul className="space-y-2">
+      <div className="rounded-md border mt-2">
+        <ul className="space-y-0">
           {state.companyHolidays.map((holiday, index) => (
             <li
               key={holiday.date.getTime()}
-              className="flex items-center justify-between rounded-md border p-2"
+              className={`flex items-center justify-between py-3 px-4 ${
+                index === state.companyHolidays.length - 1
+                  ? "border-b-0"
+                  : "border-b"
+              }`}
             >
               <div>
                 {editingHolidayIndex === index ? (
