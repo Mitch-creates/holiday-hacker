@@ -29,7 +29,7 @@ export default function AppLayout() {
           // and that the form is always 100% width on mobile and 33.3333% width on desktop
           className={`flex-grow px-4 py-8 flex ${
             showOutputArea
-              ? "flex-col lg:flex-row gap-8"
+              ? "flex-col lg:flex-row lg:items-start gap-8"
               : "justify-center items-center"
           }`}
         >

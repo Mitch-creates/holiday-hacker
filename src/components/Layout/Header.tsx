@@ -11,7 +11,7 @@ const Header: React.FC = () => {
             className="h-8 w-auto"
           />
           <span className="text-xl font-semibold text-gray-800">
-            Holiday Optimizer
+            Holiday <span className="text-blue-300">Optimizer</span>
           </span>
         </a>
         {/* Navigation items can be added here later if needed */}

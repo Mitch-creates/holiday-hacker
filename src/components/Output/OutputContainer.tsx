@@ -111,7 +111,7 @@ export const OutputContainer: React.FC = () => {
             {/* Make sparkles a bit bigger for mobile */}
             <Sparkles className="w-10 h-10 md:w-8 md:h-8 mr-2 text-theme-5" />
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-              Your Optimized Holiday Plan
+              Your <span className="text-theme-5">Optimized</span> Holiday Plan
             </h1>
           </div>
           <p className="text-sm md:text-md text-gray-600">
