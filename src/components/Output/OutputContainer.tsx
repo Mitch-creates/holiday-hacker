@@ -1,5 +1,5 @@
 import { useFormResults } from "@/context/FormResultsContext";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   CalendarDays,
@@ -25,10 +25,34 @@ export const OutputContainer: React.FC = () => {
   const { status, calculatedPeriods, formInputState, error } = state;
   const mobileCarouselRef = useRef<HTMLDivElement>(null);
   const [activeMobileCardIndex, setActiveMobileCardIndex] = useState(0);
+  const [sortBy, setSortBy] = useState<
+    "roi-desc" | "total-desc" | "used-asc" | "date-asc"
+  >("roi-desc");
 
   useEffect(() => {
     setActiveMobileCardIndex(0);
   }, [calculatedPeriods.length]);
+
+  const sortedPeriods = useMemo(() => {
+    const periods = [...calculatedPeriods];
+    const getRoi = (userDays: number, totalDaysOff: number) =>
+      userDays > 0 ? totalDaysOff / userDays : totalDaysOff;
+
+    periods.sort((a, b) => {
+      if (sortBy === "total-desc") return b.totalDaysOff - a.totalDaysOff;
+      if (sortBy === "used-asc") return a.userHolidaysUsed - b.userHolidaysUsed;
+      if (sortBy === "date-asc") {
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      }
+      const roiDiff =
+        getRoi(b.userHolidaysUsed, b.totalDaysOff) -
+        getRoi(a.userHolidaysUsed, a.totalDaysOff);
+      if (roiDiff !== 0) return roiDiff;
+      return b.totalDaysOff - a.totalDaysOff;
+    });
+
+    return periods;
+  }, [calculatedPeriods, sortBy]);
 
   // Initial loading state
   if (status === "loading") {
@@ -198,8 +222,35 @@ export const OutputContainer: React.FC = () => {
             Swipe to browse trip options
           </p>
           <p className="text-xs font-semibold text-theme-5">
-            {calculatedPeriods.length} options
+            {sortedPeriods.length} options
           </p>
+        </div>
+        <div className="flex items-center justify-between gap-3 mt-2">
+          <label
+            htmlFor="results-sort"
+            className="text-xs md:text-sm font-semibold text-muted-foreground"
+          >
+            Sort by
+          </label>
+          <select
+            id="results-sort"
+            value={sortBy}
+            onChange={(e) =>
+              setSortBy(
+                e.target.value as
+                  | "roi-desc"
+                  | "total-desc"
+                  | "used-asc"
+                  | "date-asc"
+              )
+            }
+            className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1 font-semibold"
+          >
+            <option value="roi-desc">Best ROI first</option>
+            <option value="total-desc">Most days off first</option>
+            <option value="used-asc">Fewest days used first</option>
+            <option value="date-asc">Soonest start date first</option>
+          </select>
         </div>
         <div
           ref={mobileCarouselRef}
@@ -211,13 +262,13 @@ export const OutputContainer: React.FC = () => {
             const index = Math.round(el.scrollLeft / cardWidth);
             const boundedIndex = Math.max(
               0,
-              Math.min(calculatedPeriods.length - 1, index)
+              Math.min(sortedPeriods.length - 1, index)
             );
             setActiveMobileCardIndex(boundedIndex);
           }}
           className="md:hidden -mx-2 px-2 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2"
         >
-          {calculatedPeriods.map((period, index) => (
+          {sortedPeriods.map((period, index) => (
             <div
               key={index}
               className="snap-center shrink-0 w-[92%] max-w-[420px]"
@@ -227,7 +278,7 @@ export const OutputContainer: React.FC = () => {
           ))}
         </div>
         <div className="md:hidden flex items-center justify-center gap-1.5">
-          {calculatedPeriods.map((_, index) => (
+          {sortedPeriods.map((_, index) => (
             <span
               key={`dot-${index}`}
               className={`h-2 rounded-full transition-all ${
@@ -239,7 +290,7 @@ export const OutputContainer: React.FC = () => {
           ))}
         </div>
         <div className="hidden md:grid grid-cols-2 gap-4 mt-6">
-          {calculatedPeriods.map((period, index) => (
+          {sortedPeriods.map((period, index) => (
             <HolidayPeriodCard key={index} period={period} />
           ))}
         </div>
