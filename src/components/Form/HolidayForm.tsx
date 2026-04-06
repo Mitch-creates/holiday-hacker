@@ -24,6 +24,7 @@ import { ModifyCompanyHolidays } from "./ModifyCompanyHolidays";
 import { useState, useEffect } from "react";
 import { useFormResults } from "@/context/FormResultsContext";
 import { StrategyType } from "@/lib/holidayCalculations";
+import { trackEvent } from "@/lib/analytics";
 
 export type HolidayFormValues = z.infer<typeof formSchema>;
 
@@ -133,6 +134,14 @@ export function HolidayForm() {
     setTimeout(() => {
       try {
         updateFormInputState(formSnapshot);
+        trackEvent("pto_plan_generated", {
+          country: formSnapshot.selectedCountry || "unknown",
+          strategy: formSnapshot.strategy,
+          pto_days_input: Number(formSnapshot.userHolidays) || 0,
+          year: Number(formSnapshot.year),
+          company_holidays_count: formSnapshot.companyHolidays.length,
+          public_holidays_count: formSnapshot.publicHolidays.length,
+        });
       } finally {
         setIsGenerating(false);
         // Scroll logic is now handled by the useEffect below

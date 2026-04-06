@@ -20,6 +20,7 @@ import HolidayPeriodCard from "./HolidayPeriodCard";
 import OutputCalendarView from "./OutputCalendarView";
 import SummaryItem from "./SummaryItem";
 import ShareSection from "./ShareSection";
+import { trackEvent } from "@/lib/analytics";
 
 export const OutputContainer: React.FC = () => {
   const { state } = useFormResults();
@@ -251,7 +252,10 @@ export const OutputContainer: React.FC = () => {
           <div className="grid grid-cols-2 rounded-xl border-[3px] border-foreground bg-card p-1 w-fit">
             <button
               type="button"
-              onClick={() => setViewMode("list")}
+              onClick={() => {
+                setViewMode("list");
+                trackEvent("results_view_changed", { view: "list" });
+              }}
               className={`px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg border-2 ${
                 viewMode === "list"
                   ? "bg-theme-2 border-foreground text-black"
@@ -262,7 +266,10 @@ export const OutputContainer: React.FC = () => {
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("calendar")}
+              onClick={() => {
+                setViewMode("calendar");
+                trackEvent("results_view_changed", { view: "calendar" });
+              }}
               className={`px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg border-2 ${
                 viewMode === "calendar"
                   ? "bg-theme-5 border-foreground text-white"
@@ -281,14 +288,16 @@ export const OutputContainer: React.FC = () => {
           <select
             value={sortBy}
             onChange={(e) =>
-              setSortBy(
-                e.target.value as
+              {
+                const value = e.target.value as
                   | "roi-desc"
                   | "total-desc"
                   | "used-asc"
                   | "date-asc"
-                  | "desired-month"
-              )
+                  | "desired-month";
+                setSortBy(value);
+                trackEvent("pto_scenario_compared", { sort_by: value });
+              }
             }
             className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
           >
@@ -300,7 +309,12 @@ export const OutputContainer: React.FC = () => {
           </select>
           <select
             value={desiredMonth}
-            onChange={(e) => setDesiredMonth(e.target.value)}
+            onChange={(e) => {
+              setDesiredMonth(e.target.value);
+              trackEvent("results_filter_changed", {
+                desired_month: e.target.value === "" ? "none" : e.target.value,
+              });
+            }}
             className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
           >
             <option value="">Desired month (optional)</option>
@@ -312,7 +326,10 @@ export const OutputContainer: React.FC = () => {
           </select>
           <select
             value={minRoiFilter}
-            onChange={(e) => setMinRoiFilter(e.target.value as "0" | "1.5" | "2" | "3")}
+            onChange={(e) => {
+              setMinRoiFilter(e.target.value as "0" | "1.5" | "2" | "3");
+              trackEvent("results_filter_changed", { min_roi: e.target.value });
+            }}
             className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
           >
             <option value="0">Filter: Any ROI</option>
@@ -323,9 +340,14 @@ export const OutputContainer: React.FC = () => {
           <select
             value={maxDaysUsedFilter}
             onChange={(e) =>
-              setMaxDaysUsedFilter(
-                e.target.value as "all" | "1" | "2" | "3" | "5"
-              )
+              {
+                setMaxDaysUsedFilter(
+                  e.target.value as "all" | "1" | "2" | "3" | "5"
+                );
+                trackEvent("results_filter_changed", {
+                  max_days_used: e.target.value,
+                });
+              }
             }
             className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
           >

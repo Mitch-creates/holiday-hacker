@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Share2, Link as LinkIcon, Check } from "lucide-react";
 import { useState, useEffect } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 interface ShareSectionProps {
   sharebuttonText?: string;
@@ -18,6 +19,7 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
         .writeText(shareUrl)
         .then(() => {
           setIsCopied(true);
+          trackEvent("plan_shared", { share_channel: "copy_link" });
         })
         .catch((err) => {
           console.error("Failed to copy: ", err);
@@ -55,6 +57,7 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
             )}&url=${encodeURIComponent(shareUrl)}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackEvent("plan_shared", { share_channel: "x" })}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-sky-500 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-colors"
             aria-label="Share on X/Twitter"
           >
@@ -76,6 +79,7 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
             )}&quote=${encodeURIComponent(shareText)}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackEvent("plan_shared", { share_channel: "facebook" })}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-theme-7 hover:bg-theme-7/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors"
             aria-label="Share on Facebook"
           >
@@ -97,6 +101,7 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
             )}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackEvent("plan_shared", { share_channel: "whatsapp" })}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 transition-colors"
             aria-label="Share on WhatsApp"
           >
