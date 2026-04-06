@@ -37,6 +37,62 @@ export const OutputContainer: React.FC = () => {
   >("all");
   const [desiredMonth, setDesiredMonth] = useState<string>("");
 
+  const exportAsIcs = () => {
+    if (sortedPeriods.length === 0) return;
+
+    const toUtc = (date: Date) =>
+      date
+        .toISOString()
+        .replace(/[-:]/g, "")
+        .replace(/\.\d{3}Z$/, "Z");
+
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//Holiday Hacker//EN",
+      "CALSCALE:GREGORIAN",
+    ];
+
+    sortedPeriods.forEach((period, idx) => {
+      const start = new Date(period.startDate);
+      const end = new Date(period.endDate);
+      end.setDate(end.getDate() + 1); // iCal end is exclusive
+
+      const uid = `holiday-hacker-${start.getTime()}-${idx}@holidayoptimizer.com`;
+      lines.push("BEGIN:VEVENT");
+      lines.push(`UID:${uid}`);
+      lines.push(`DTSTAMP:${toUtc(new Date())}`);
+      lines.push(`DTSTART;VALUE=DATE:${toUtc(start).slice(0, 8)}`);
+      lines.push(`DTEND;VALUE=DATE:${toUtc(end).slice(0, 8)}`);
+      lines.push(
+        `SUMMARY:Holiday Hacker plan (${period.totalDaysOff} days off / ${period.userHolidaysUsed} days used)`
+      );
+      lines.push(
+        `DESCRIPTION:${(period.description || "Optimized holiday period").replace(/\n/g, " ")}`
+      );
+      lines.push("END:VEVENT");
+    });
+
+    lines.push("END:VCALENDAR");
+    const blob = new Blob([lines.join("\r\n")], {
+      type: "text/calendar;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `holiday-hacker-${formInputState.year}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    trackEvent("calendar_exported", {
+      export_type: "ics",
+      events_exported_count: sortedPeriods.length,
+      year: Number(formInputState.year),
+    });
+  };
+
   useEffect(() => {
     setActiveMobileCardIndex(0);
   }, [calculatedPeriods.length]);
@@ -357,6 +413,15 @@ export const OutputContainer: React.FC = () => {
             <option value="3">Filter: Max 3 days used</option>
             <option value="5">Filter: Max 5 days used</option>
           </select>
+        </div>
+        <div className="flex items-center justify-end">
+          <button
+            type="button"
+            onClick={exportAsIcs}
+            className="px-3 py-2 text-xs md:text-sm font-bold border-[3px] border-foreground rounded-lg bg-theme-2 text-black active:scale-[0.98]"
+          >
+            Export to calendar (.ics)
+          </button>
         </div>
 
         {viewMode === "calendar" && (
