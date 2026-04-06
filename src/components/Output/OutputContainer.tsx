@@ -98,6 +98,10 @@ export const OutputContainer: React.FC = () => {
       (sum, p) => sum + p.totalDaysOff,
       0
     );
+    const overallRoi =
+      totalUserHolidaysUsed > 0
+        ? (totalDaysOff / totalUserHolidaysUsed).toFixed(1)
+        : totalDaysOff.toFixed(1);
 
     const displayStrategy =
       formInputState?.strategy ||
@@ -115,8 +119,9 @@ export const OutputContainer: React.FC = () => {
             </h1>
           </div>
           <p className="text-sm md:text-md text-gray-600">
-            Your optimized holiday periods are ready. Review your results and
-            make the most of your time off.
+            Your optimized holiday periods are ready. You are getting{" "}
+            <span className="font-semibold text-theme-5">{overallRoi} days off</span>{" "}
+            per vacation day used.
           </p>
         </div>
         <Card className="shadow-sm border">
@@ -128,7 +133,7 @@ export const OutputContainer: React.FC = () => {
               </h2>
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
+          <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-center">
             <SummaryItem
               label="Total Days Off"
               value={totalDaysOff}
@@ -156,6 +161,13 @@ export const OutputContainer: React.FC = () => {
               icon={CalendarCheckIcon}
               valueClassName="theme-2"
               tooltip="The number of your personal annual leave days used to create these holiday periods."
+            />
+            <SummaryItem
+              label="Days Per Day Used"
+              value={`${overallRoi}x`}
+              icon={ChartColumn}
+              valueClassName="theme-5"
+              tooltip="Your return on vacation days: total days off divided by user holidays used."
             />
             <SummaryItem
               label="Year"

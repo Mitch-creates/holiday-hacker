@@ -23,6 +23,10 @@ interface HolidayPeriodCardProps {
 const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
   const periodStartDate = new Date(period.startDate);
   const periodEndDate = new Date(period.endDate);
+  const periodRoi =
+    period.userHolidaysUsed > 0
+      ? (period.totalDaysOff / period.userHolidaysUsed).toFixed(1)
+      : period.totalDaysOff.toFixed(1);
 
   const calendarGridStartDate = new Date(periodStartDate);
   calendarGridStartDate.setDate(
@@ -102,6 +106,11 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
             {period.type.replace("_", " ")}
           </Badge>
         </div>
+        <p className="text-xs font-medium text-theme-5 mt-2">
+          Trade-off: {period.userHolidaysUsed} day
+          {period.userHolidaysUsed === 1 ? "" : "s"} used for {period.totalDaysOff}{" "}
+          days off ({periodRoi}x return)
+        </p>
       </CardHeader>
       <CardContent className="flex-grow">
         <TooltipProvider>

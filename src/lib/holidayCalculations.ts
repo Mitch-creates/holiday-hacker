@@ -145,6 +145,7 @@ interface StrategyConfig {
   candidateScoringFn: (
     candidate: PeriodCandidate,
     passIndex: number,
+    allHolidaysMap: Map<string, DayOff>,
     precomputedData?: PrecomputedData
   ) => number;
   /**
@@ -192,6 +193,69 @@ function toIso(date: Date): string {
 function isWeekend(date: Date): boolean {
   const day = date.getDay();
   return day === 0 || day === 6; // 0 for Sunday, 6 for Saturday
+}
+
+function isHolidayLikeDay(date: Date, allHolidaysMap: Map<string, DayOff>): boolean {
+  return isWeekend(date) || allHolidaysMap.has(toIso(date));
+}
+
+function calculateRoi(userDays: number, totalDaysOff: number): number {
+  if (userDays <= 0) return totalDaysOff;
+  return totalDaysOff / userDays;
+}
+
+/**
+ * Scores how "worth it" a candidate feels for travelers:
+ * - Higher ROI (days off per user day) is strongly favored.
+ * - "Bridge" user days (between/next to free days) are rewarded.
+ * - Random mid-week-only windows get a mild penalty.
+ */
+function calculateTravelUtilityScore(
+  candidate: PeriodCandidate,
+  allHolidaysMap: Map<string, DayOff>
+): number {
+  const roi = calculateRoi(candidate.userDays, candidate.length);
+  const naturalDays = candidate.publicDays + candidate.companyDays + candidate.weekendDays;
+
+  let bridgeBonus = 0;
+  let isolatedUserDayPenalty = 0;
+  let fridayOrMondayBridgeBonus = 0;
+
+  for (let i = 0; i < candidate.periodDays.length; i++) {
+    const day = candidate.periodDays[i];
+    const dayIso = toIso(day);
+    const isUserDay = !isWeekend(day) && !allHolidaysMap.has(dayIso);
+    if (!isUserDay) continue;
+
+    const prev = i > 0 ? candidate.periodDays[i - 1] : undefined;
+    const next =
+      i < candidate.periodDays.length - 1 ? candidate.periodDays[i + 1] : undefined;
+
+    const prevHolidayLike = prev
+      ? isHolidayLikeDay(prev, allHolidaysMap)
+      : false;
+    const nextHolidayLike = next
+      ? isHolidayLikeDay(next, allHolidaysMap)
+      : false;
+
+    if (prevHolidayLike || nextHolidayLike) bridgeBonus += 1;
+    if (prevHolidayLike && nextHolidayLike) bridgeBonus += 1.5;
+    if (!prevHolidayLike && !nextHolidayLike) isolatedUserDayPenalty += 1;
+
+    const dayOfWeek = day.getDay();
+    const adjacentHolidayLike = prevHolidayLike || nextHolidayLike;
+    if (adjacentHolidayLike && (dayOfWeek === 1 || dayOfWeek === 5)) {
+      fridayOrMondayBridgeBonus += 1;
+    }
+  }
+
+  const structureScore =
+    naturalDays * 1.2 +
+    bridgeBonus * 2.5 +
+    fridayOrMondayBridgeBonus * 2 -
+    isolatedUserDayPenalty * 1.5;
+
+  return roi * 16 + structureScore;
 }
 
 /**
@@ -439,6 +503,7 @@ function executeHolidayStrategy(
         candidate.score = config.candidateScoringFn(
           candidate,
           passIndex,
+          allHolidaysMap,
           precomputedData
         );
         candidatesThisPass.push(candidate);
@@ -540,12 +605,20 @@ const longWeekendConfig: StrategyConfig = {
       userDaysInCandidate === 1 && userDaysInCandidate <= availableUserHolidays
     );
   },
-  candidateScoringFn: (_candidate, passIndex) => {
-    // Prioritize 4-day (pass 0) over 3-day (pass 1)
-    // Within a pass, all valid candidates are equal as per original logic
-    return passIndex === 0 ? 100 : 50;
+  candidateScoringFn: (candidate, passIndex, allHolidaysMap) => {
+    // Keep a slight preference for 4-day periods, then rank by utility.
+    const passBonus = passIndex === 0 ? 8 : 0;
+    const lengthBonus = candidate.length === 4 ? 4 : 0;
+    return (
+      calculateTravelUtilityScore(candidate, allHolidaysMap) +
+      passBonus +
+      lengthBonus
+    );
   },
-  descriptionFn: (period) => `${period.totalDaysOff}-day long weekend`,
+  descriptionFn: (period) => {
+    const roi = calculateRoi(period.userHolidaysUsed, period.totalDaysOff).toFixed(1);
+    return `${period.totalDaysOff}-day long weekend (${period.userHolidaysUsed} day used, ${roi}x return)`;
+  },
 };
 
 /** Configuration for the 'midWeek' strategy. */
@@ -561,16 +634,14 @@ const midWeekConfig: StrategyConfig = {
   candidateFilterFn: (candidate) => {
     return candidate.weekendDays === 2; // Must be exactly 2 weekend days
   },
-  candidateScoringFn: (candidate) => {
-    const holidayDays = candidate.publicDays + candidate.companyDays;
-    return (
-      holidayDays * 10 +
-      candidate.weekendDays * 5 -
-      candidate.userDays * 3 +
-      (candidate.length === 6 ? 2 : 0)
-    );
+  candidateScoringFn: (candidate, _passIndex, allHolidaysMap) => {
+    const lengthBonus = candidate.length === 6 ? 2 : 0;
+    return calculateTravelUtilityScore(candidate, allHolidaysMap) + lengthBonus;
   },
-  descriptionFn: (period) => `${period.totalDaysOff}-day midweek break`,
+  descriptionFn: (period) => {
+    const roi = calculateRoi(period.userHolidaysUsed, period.totalDaysOff).toFixed(1);
+    return `${period.totalDaysOff}-day midweek break (${period.userHolidaysUsed} days used, ${roi}x return)`;
+  },
 };
 
 /** Configuration for the \'week\' strategy. */
@@ -586,16 +657,14 @@ const weekConfig: StrategyConfig = {
   candidateFilterFn: (candidate) => {
     return candidate.weekendDays === 2; // Must be exactly 2 weekend days
   },
-  candidateScoringFn: (candidate) => {
-    const holidayDays = candidate.publicDays + candidate.companyDays;
-    return (
-      holidayDays * 10 +
-      candidate.weekendDays * 5 -
-      candidate.userDays * 3 +
-      (candidate.length === 9 ? 4 : candidate.length === 8 ? 2 : 0)
-    );
+  candidateScoringFn: (candidate, _passIndex, allHolidaysMap) => {
+    const lengthBonus = candidate.length === 9 ? 4 : candidate.length === 8 ? 2 : 0;
+    return calculateTravelUtilityScore(candidate, allHolidaysMap) + lengthBonus;
   },
-  descriptionFn: (period) => `${period.totalDaysOff}-day week break`,
+  descriptionFn: (period) => {
+    const roi = calculateRoi(period.userHolidaysUsed, period.totalDaysOff).toFixed(1);
+    return `${period.totalDaysOff}-day week break (${period.userHolidaysUsed} days used, ${roi}x return)`;
+  },
 };
 
 /** Configuration for the 'extended' strategy. */
@@ -614,16 +683,17 @@ const extendedConfig: StrategyConfig = {
   candidateFilterFn: (candidate) => {
     return candidate.weekendDays === 2; // Must be exactly 2 weekend days
   },
-  candidateScoringFn: (candidate, passIndex) => {
-    const holidayDays = candidate.publicDays + candidate.companyDays;
-    const baseScore =
-      holidayDays * 10 + candidate.weekendDays * 5 - candidate.userDays * 3;
+  candidateScoringFn: (candidate, passIndex, allHolidaysMap) => {
+    const baseScore = calculateTravelUtilityScore(candidate, allHolidaysMap);
     if (passIndex === 0 && candidate.length === 15) return baseScore + 6;
     if (passIndex === 0 && candidate.length === 14) return baseScore + 4;
     if (passIndex === 0 && candidate.length === 13) return baseScore + 2;
     return baseScore;
   },
-  descriptionFn: (period) => `${period.totalDaysOff}-day extended break`,
+  descriptionFn: (period) => {
+    const roi = calculateRoi(period.userHolidaysUsed, period.totalDaysOff).toFixed(1);
+    return `${period.totalDaysOff}-day extended break (${period.userHolidaysUsed} days used, ${roi}x return)`;
+  },
 };
 
 const strategyConfigMap: Record<StrategyType, StrategyConfig> = {
