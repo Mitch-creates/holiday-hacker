@@ -21,7 +21,7 @@ import { ModifyHolidays } from "./ModifyHolidays";
 import FormContainer from "./FormContainer";
 import MultipleDayPicker from "./MultipleDayPicker";
 import { ModifyCompanyHolidays } from "./ModifyCompanyHolidays";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useFormResults } from "@/context/FormResultsContext";
 import { StrategyType } from "@/lib/holidayCalculations";
 import { trackEvent } from "@/lib/analytics";
@@ -109,6 +109,7 @@ export function HolidayForm() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [awaitingScroll, setAwaitingScroll] = useState(false); // New state for scroll trigger
   const STORAGE_KEY = "hh_form_preferences";
+  const hasHydratedPreferences = useRef(false);
 
   const form = useForm<HolidayFormValues>({
     resolver: zodResolver(formSchema),
@@ -183,7 +184,10 @@ export function HolidayForm() {
 
   useEffect(() => {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
+    if (!raw) {
+      hasHydratedPreferences.current = true;
+      return;
+    }
     try {
       const prefs = JSON.parse(raw) as {
         userHolidays?: string;
@@ -214,17 +218,15 @@ export function HolidayForm() {
       }
     } catch {
       // ignore malformed local data
+    } finally {
+      hasHydratedPreferences.current = true;
     }
-  }, [
-    form,
-    updateSelectedCountry,
-    updateSelectedRegion,
-    updateStrategy,
-    updateUserHolidays,
-    updateYear,
-  ]);
+    // Intentionally run once on mount to avoid cyclical context updates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
+    if (!hasHydratedPreferences.current) return;
     const prefs = {
       userHolidays: state.userHolidays,
       strategy: state.strategy,

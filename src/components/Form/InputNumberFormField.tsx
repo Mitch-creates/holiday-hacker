@@ -42,27 +42,14 @@ export default function InputNumberFormField({
 
                 // Only allow digits or empty string
                 if (value === "" || /^\d+$/.test(value)) {
-                  // Pass the raw string to form state
-                  field.onChange(value);
-
-                  // For number validation
+                  let nextValue = value;
                   if (value !== "") {
                     const numValue = parseInt(value, 10);
-
-                    // Apply min/max constraints
-                    if (numValue > max) {
-                      field.onChange(max.toString());
-                      if (onValueChange) onValueChange(max.toString());
-                    } else if (numValue < min) {
-                      field.onChange(min.toString());
-                      if (onValueChange) onValueChange(min.toString());
-                    } else {
-                      if (onValueChange) onValueChange(value);
-                    }
-                  } else {
-                    // Handle empty string case
-                    if (onValueChange) onValueChange("");
+                    if (numValue > max) nextValue = max.toString();
+                    else if (numValue < min) nextValue = min.toString();
                   }
+                  field.onChange(nextValue);
+                  if (onValueChange) onValueChange(nextValue);
                 }
                 // Ignore input if not a digit
               }}

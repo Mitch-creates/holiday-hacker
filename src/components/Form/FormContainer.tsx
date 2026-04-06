@@ -14,7 +14,7 @@ export default function FormContainer({ children, title }: FormContainerProps) {
   const { updateYear } = useHolidayForm();
   return (
     <div className="border-[3px] border-foreground p-2.5 rounded-2xl shadow-[6px_6px_0_0_rgba(0,0,0,0.8)] bg-card space-y-2">
-      <div className="flex p items-center justify-between">
+      <div className="flex items-center justify-between">
         <div className="flex items-center text-3xl gap-1 font-black text-theme-5 pl-4">
           <Calendar className="h-6 w-auto md:h-7 lg:h-8" />
           <span className="md:text-xl text-xs lg:text-2xl">{title}</span>
