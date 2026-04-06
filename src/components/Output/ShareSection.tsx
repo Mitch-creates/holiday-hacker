@@ -76,7 +76,7 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
             )}&quote=${encodeURIComponent(shareText)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-theme-7 hover:bg-theme-7/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors"
             aria-label="Share on Facebook"
           >
             <svg
