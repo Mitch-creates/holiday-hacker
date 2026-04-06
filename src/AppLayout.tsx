@@ -38,7 +38,7 @@ export default function AppLayout() {
               <button
                 type="button"
                 onClick={() => setMobileView("planner")}
-                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition active:scale-[0.98] ${
                   mobileView === "planner"
                     ? "bg-theme-2 text-black border-2 border-black"
                     : "text-foreground"
@@ -50,7 +50,7 @@ export default function AppLayout() {
               <button
                 type="button"
                 onClick={() => setMobileView("results")}
-                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition active:scale-[0.98] ${
                   mobileView === "results"
                     ? "bg-theme-5 text-white border-2 border-black"
                     : "text-foreground"
@@ -74,6 +74,7 @@ export default function AppLayout() {
         >
           <section
             aria-label="Holiday Calculation Form"
+            id="planner-section"
             className={`${
               showOutputArea ? "w-full lg:max-w-[33.3333%]" : "w-full max-w-xl"
             } ${
@@ -94,6 +95,25 @@ export default function AppLayout() {
             </section>
           )}
         </main>
+        {showOutputArea && mobileView === "results" && (
+          <div className="lg:hidden sticky bottom-3 z-20 px-4 pb-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileView("planner");
+                requestAnimationFrame(() => {
+                  document.getElementById("planner-section")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                });
+              }}
+              className="w-full rounded-xl border-[3px] border-foreground bg-theme-2 text-black font-bold py-3 shadow-[5px_5px_0_0_rgba(0,0,0,0.8)] active:translate-y-0.5 active:shadow-[2px_2px_0_0_rgba(0,0,0,0.8)] transition"
+            >
+              Adjust Plan
+            </button>
+          </div>
+        )}
         <Footer />
       </div>
     </>

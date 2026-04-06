@@ -1,4 +1,5 @@
 import { useFormResults } from "@/context/FormResultsContext";
+import { useEffect, useRef, useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   CalendarDays,
@@ -22,6 +23,12 @@ import ShareSection from "./ShareSection";
 export const OutputContainer: React.FC = () => {
   const { state } = useFormResults();
   const { status, calculatedPeriods, formInputState, error } = state;
+  const mobileCarouselRef = useRef<HTMLDivElement>(null);
+  const [activeMobileCardIndex, setActiveMobileCardIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveMobileCardIndex(0);
+  }, [calculatedPeriods.length]);
 
   // Initial loading state
   if (status === "loading") {
@@ -194,7 +201,22 @@ export const OutputContainer: React.FC = () => {
             {calculatedPeriods.length} options
           </p>
         </div>
-        <div className="md:hidden -mx-2 px-2 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2">
+        <div
+          ref={mobileCarouselRef}
+          onScroll={() => {
+            const el = mobileCarouselRef.current;
+            if (!el) return;
+            const cardWidth = el.clientWidth * 0.92 + 12;
+            if (cardWidth <= 0) return;
+            const index = Math.round(el.scrollLeft / cardWidth);
+            const boundedIndex = Math.max(
+              0,
+              Math.min(calculatedPeriods.length - 1, index)
+            );
+            setActiveMobileCardIndex(boundedIndex);
+          }}
+          className="md:hidden -mx-2 px-2 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2"
+        >
           {calculatedPeriods.map((period, index) => (
             <div
               key={index}
@@ -202,6 +224,18 @@ export const OutputContainer: React.FC = () => {
             >
               <HolidayPeriodCard period={period} />
             </div>
+          ))}
+        </div>
+        <div className="md:hidden flex items-center justify-center gap-1.5">
+          {calculatedPeriods.map((_, index) => (
+            <span
+              key={`dot-${index}`}
+              className={`h-2 rounded-full transition-all ${
+                activeMobileCardIndex === index
+                  ? "w-5 bg-theme-5"
+                  : "w-2 bg-muted-foreground/40"
+              }`}
+            />
           ))}
         </div>
         <div className="hidden md:grid grid-cols-2 gap-4 mt-6">
