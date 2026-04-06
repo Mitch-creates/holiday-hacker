@@ -12,19 +12,25 @@ const Footer: React.FC = () => {
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
           <a
-            href="/privacy-policy"
+            href="/impressum"
+            className="text-muted-foreground hover:text-foreground hover:underline"
+          >
+            Impressum
+          </a>
+          <a
+            href="/privacy"
             className="text-muted-foreground hover:text-foreground hover:underline"
           >
             Privacy Policy
           </a>
           <a
-            href="/terms-of-service"
+            href="/terms"
             className="text-muted-foreground hover:text-foreground hover:underline"
           >
             Terms of Service
           </a>
           <a
-            href="mailto:feedback.optimizer@gmail.com"
+            href="mailto:contact@holidayoptimizer.com"
             className="flex items-center gap-2 px-4 py-2 bg-theme-4 text-white rounded-lg hover:bg-theme-4/80 transition-colors duration-300 shadow-md text-sm"
           >
             <Mail size={16} />

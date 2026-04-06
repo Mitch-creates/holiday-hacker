@@ -6,13 +6,18 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://holidayoptimizer.com/privacy-policy</loc>
-    <lastmod>2025-06-14</lastmod>
+    <loc>https://holidayoptimizer.com/privacy</loc>
+    <lastmod>2026-04-06</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://holidayoptimizer.com/terms-of-service</loc>
-    <lastmod>2025-06-14</lastmod>
+    <loc>https://holidayoptimizer.com/terms</loc>
+    <lastmod>2026-04-06</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://holidayoptimizer.com/impressum</loc>
+    <lastmod>2026-04-06</lastmod>
     <priority>0.8</priority>
   </url>
 </urlset>
