@@ -122,7 +122,7 @@ export function ModifyCompanyHolidays({
                       setEditValue(holiday.name);
                     }}
                   >
-                    <div className="border-b border-transparent hover:border-gray-300">
+                    <div className="border-b border-transparent hover:border-border">
                       <span>{holiday.name || "Click to add name"}</span>
                       <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Pen className="inline h-3 w-3 pb-0.5" />

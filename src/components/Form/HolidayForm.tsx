@@ -253,7 +253,7 @@ export function HolidayForm() {
           <div className="flex justify-center">
             <Button
               type="submit"
-              className="w-full max-w-[300px] bg-blue-400 text-white cursor-pointer hover:bg-blue-500 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full max-w-[300px] bg-theme-5 text-white cursor-pointer hover:bg-theme-5/90 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
             >
               <span
                 className={`flex items-center gap-2 ${

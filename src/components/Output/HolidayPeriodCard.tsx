@@ -162,8 +162,8 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex flex-col items-center cursor-default">
-                  <Clock className="w-4 h-4 mb-0.5 text-gray-600" />
-                  <span className="font-medium text-gray-600">
+                  <Clock className="w-4 h-4 mb-0.5 text-muted-foreground" />
+                  <span className="font-medium text-muted-foreground">
                     {period.weekendDays}
                   </span>
                 </div>

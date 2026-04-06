@@ -62,17 +62,17 @@ export const getDayTypeStyle = (
         label: "Company Holiday",
       };
     case "WEEKEND":
-      return { bg: "bg-gray-300", text: "text-gray-700", label: "Weekend" };
+      return { bg: "bg-muted", text: "text-foreground", label: "Weekend" };
     case "OUT_OF_PERIOD":
       return {
-        bg: "bg-gray-100",
-        text: "text-gray-400",
+        bg: "bg-muted/60",
+        text: "text-muted-foreground",
         label: "Not in period",
       };
     case "WEEKDAY_HEADER":
-      return { bg: "bg-transparent", text: "text-gray-500", label: "Weekday" };
+      return { bg: "bg-transparent", text: "text-muted-foreground", label: "Weekday" };
     default:
-      return { bg: "bg-gray-100", text: "text-gray-500", label: "" };
+      return { bg: "bg-muted/60", text: "text-muted-foreground", label: "" };
   }
 };
 

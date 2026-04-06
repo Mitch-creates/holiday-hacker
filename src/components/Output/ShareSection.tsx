@@ -36,15 +36,15 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
   }, [isCopied]);
 
   return (
-    <Card className="mt-8 shadow-sm border">
+    <Card className="mt-8 border-[3px] border-foreground shadow-[5px_5px_0_0_rgba(0,0,0,0.7)]">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-700 flex items-center">
+        <CardTitle className="text-lg font-semibold text-foreground flex items-center">
           <Share2 className="w-5 h-5 mr-2 text-theme-9/70" />
           Found this tool helpful?
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-gray-600 mb-4">
+        <p className="text-muted-foreground mb-4">
           Help your friends and colleagues optimize their days off by sharing
           Holiday Optimizer with them.
         </p>
@@ -114,7 +114,7 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
           </a>
           <button
             onClick={handleCopyLink}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors cursor-pointer min-w-[130px] justify-center"
+            className="inline-flex items-center px-4 py-2 border-2 border-foreground text-sm font-medium rounded-md shadow-sm text-foreground bg-background hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors cursor-pointer min-w-[130px] justify-center"
             aria-label="Copy link to clipboard"
             disabled={isCopied}
           >

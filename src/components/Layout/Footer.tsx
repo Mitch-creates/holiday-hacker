@@ -5,21 +5,21 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t bg-gray-50">
+    <footer className="border-t border-foreground bg-background">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 md:flex-row md:px-6">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           &copy; {currentYear} Holiday Optimizer. All rights reserved.
         </div>
         <nav className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
           <a
             href="/privacy-policy"
-            className="text-gray-600 hover:text-gray-800 hover:underline"
+            className="text-muted-foreground hover:text-foreground hover:underline"
           >
             Privacy Policy
           </a>
           <a
             href="/terms-of-service"
-            className="text-gray-600 hover:text-gray-800 hover:underline"
+            className="text-muted-foreground hover:text-foreground hover:underline"
           >
             Terms of Service
           </a>
@@ -37,7 +37,7 @@ const Footer: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Mitchcreates on X"
-            className="text-gray-500 hover:text-gray-700"
+            className="text-muted-foreground hover:text-foreground"
           >
             <Twitter size={20} />
           </a>

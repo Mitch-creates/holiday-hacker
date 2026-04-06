@@ -133,7 +133,7 @@ export const OutputContainer: React.FC = () => {
         </div>
         <Card className="border-[3px] border-foreground shadow-[5px_5px_0_0_rgba(0,0,0,0.7)] bg-card">
           <CardHeader>
-            <CardTitle className="text-xl font-bold text-gray-700 flex items-center">
+            <CardTitle className="text-xl font-bold text-foreground flex items-center">
               <ChartColumn className="w-6 h-6 mr-2 text-theme-9/70" />
               <h2 className="text-theme-9/70 text-xl font-bold">
                 Optimization Statistics
