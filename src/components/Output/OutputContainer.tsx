@@ -142,6 +142,16 @@ export const OutputContainer: React.FC = () => {
   }, [desiredMonth, sortBy, visiblePeriods]);
 
   const scenarioCompare = useMemo(() => {
+    type ScenarioCard = {
+      key: "roi-desc" | "total-desc" | "used-asc" | "date-asc";
+      label: string;
+      period: (typeof calculatedPeriods)[number];
+      roi: number;
+      deltaDaysOff: number;
+      deltaDaysUsed: number;
+      deltaRoi: number;
+    };
+
     if (calculatedPeriods.length === 0) return [];
     const getTop = (
       key: "roi-desc" | "total-desc" | "used-asc" | "date-asc",
@@ -178,7 +188,17 @@ export const OutputContainer: React.FC = () => {
       const id = `${new Date(c.period.startDate).toISOString()}-${c.period.totalDaysOff}`;
       if (!unique.has(id)) unique.set(id, c);
     });
-    return Array.from(unique.values()).slice(0, 3);
+    const scenarios = Array.from(unique.values()).slice(0, 3);
+    const baseline = scenarios[0];
+    if (!baseline) return [];
+
+    return scenarios.map((scenario): ScenarioCard => ({
+      ...scenario,
+      deltaDaysOff: scenario.period.totalDaysOff - baseline.period.totalDaysOff,
+      deltaDaysUsed:
+        scenario.period.userHolidaysUsed - baseline.period.userHolidaysUsed,
+      deltaRoi: scenario.roi - baseline.roi,
+    }));
   }, [calculatedPeriods]);
 
   // Initial loading state
@@ -349,8 +369,11 @@ export const OutputContainer: React.FC = () => {
             <p className="text-sm font-bold text-foreground mb-2">
               Compare recommended scenarios
             </p>
+            <p className="text-xs text-muted-foreground mb-2">
+              First card is baseline. Others show trade-offs against it.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              {scenarioCompare.map((scenario) => (
+              {scenarioCompare.map((scenario, index) => (
                 <button
                   key={scenario.label}
                   type="button"
@@ -371,6 +394,40 @@ export const OutputContainer: React.FC = () => {
                   <p className="text-xs text-muted-foreground">
                     ROI {scenario.roi.toFixed(1)}x
                   </p>
+                  {index > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      <span
+                        className={`text-[11px] px-1.5 py-0.5 rounded-md border ${
+                          scenario.deltaDaysOff >= 0
+                            ? "bg-theme-2/20 border-theme-2 text-foreground"
+                            : "bg-theme-4/20 border-theme-4 text-foreground"
+                        }`}
+                      >
+                        {scenario.deltaDaysOff >= 0 ? "+" : ""}
+                        {scenario.deltaDaysOff} days off
+                      </span>
+                      <span
+                        className={`text-[11px] px-1.5 py-0.5 rounded-md border ${
+                          scenario.deltaDaysUsed <= 0
+                            ? "bg-theme-2/20 border-theme-2 text-foreground"
+                            : "bg-theme-6/20 border-theme-6 text-foreground"
+                        }`}
+                      >
+                        {scenario.deltaDaysUsed >= 0 ? "+" : ""}
+                        {scenario.deltaDaysUsed} PTO used
+                      </span>
+                      <span
+                        className={`text-[11px] px-1.5 py-0.5 rounded-md border ${
+                          scenario.deltaRoi >= 0
+                            ? "bg-theme-5/20 border-theme-5 text-foreground"
+                            : "bg-theme-11/30 border-theme-11 text-foreground"
+                        }`}
+                      >
+                        {scenario.deltaRoi >= 0 ? "+" : ""}
+                        {scenario.deltaRoi.toFixed(1)} ROI
+                      </span>
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
