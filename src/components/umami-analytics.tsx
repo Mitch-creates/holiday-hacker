@@ -1,13 +1,10 @@
+"use client";
+
 import { useEffect } from "react";
 
 export default function UmamiAnalytics() {
-  const websiteId =
-    import.meta.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ||
-    import.meta.env.VITE_UMAMI_WEBSITE_ID;
-  const scriptUrl =
-    import.meta.env.NEXT_PUBLIC_UMAMI_URL ||
-    import.meta.env.VITE_UMAMI_URL ||
-    "https://cloud.umami.is";
+  const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID;
+  const scriptUrl = process.env.NEXT_PUBLIC_UMAMI_URL || "https://cloud.umami.is";
 
   useEffect(() => {
     if (!websiteId) return;
