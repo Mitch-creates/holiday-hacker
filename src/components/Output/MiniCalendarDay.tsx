@@ -17,7 +17,7 @@ const MiniCalendarDay: React.FC<MiniCalendarDayProps> = ({ day, isHeader }) => {
   if (isHeader) {
     return (
       <div
-        className={`flex items-center justify-center p-0.5 text-xs font-medium ${style.text}`}
+        className={`flex items-center justify-center py-1 text-[10px] md:text-xs font-semibold ${style.text}`}
       >
         {day.type === "WEEKDAY_HEADER" ? day.name : ""}
       </div>
@@ -26,9 +26,9 @@ const MiniCalendarDay: React.FC<MiniCalendarDayProps> = ({ day, isHeader }) => {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-0.5 border rounded-sm aspect-square ${
+      className={`flex flex-col items-center justify-center p-1 border rounded-md min-h-7 md:min-h-6 aspect-square ${
         style.bg
-      } ${style.text} transition-all duration-150 ease-in-out text-xs ${
+      } ${style.text} transition-all duration-150 ease-in-out text-[11px] md:text-xs ${
         isActiveDay ? "hover:shadow-md cursor-pointer" : "opacity-50"
       } ${isOutOfPeriod ? "pointer-events-none" : ""}`}
       title={
@@ -47,7 +47,7 @@ const MiniCalendarDay: React.FC<MiniCalendarDayProps> = ({ day, isHeader }) => {
           : undefined
       }
     >
-      <span className="font-medium">{date.getDate()}</span>
+      <span className="font-semibold">{date.getDate()}</span>
     </div>
   );
 };

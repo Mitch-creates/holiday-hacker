@@ -175,7 +175,7 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
           </div>
         </TooltipProvider>
 
-        <div className="grid grid-cols-7 gap-0.5">
+        <div className="grid grid-cols-7 gap-1">
           {weekdayHeaders.map((header) => (
             <MiniCalendarDay
               key={header}
@@ -187,6 +187,9 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
             <MiniCalendarDay key={new Date(day.date).toISOString()} day={day} />
           ))}
         </div>
+        <p className="mt-2 text-[11px] font-medium text-muted-foreground">
+          Calendar legend: vacation/public/company/weekend days are color-coded.
+        </p>
       </CardContent>
     </Card>
   );

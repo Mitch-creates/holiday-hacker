@@ -186,7 +186,25 @@ export const OutputContainer: React.FC = () => {
             />
           </CardContent>
         </Card>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        <div className="mt-2 flex items-center justify-between md:hidden">
+          <p className="text-xs font-semibold text-muted-foreground">
+            Swipe to browse trip options
+          </p>
+          <p className="text-xs font-semibold text-theme-5">
+            {calculatedPeriods.length} options
+          </p>
+        </div>
+        <div className="md:hidden -mx-2 px-2 flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2">
+          {calculatedPeriods.map((period, index) => (
+            <div
+              key={index}
+              className="snap-center shrink-0 w-[92%] max-w-[420px]"
+            >
+              <HolidayPeriodCard period={period} />
+            </div>
+          ))}
+        </div>
+        <div className="hidden md:grid grid-cols-2 gap-4 mt-6">
           {calculatedPeriods.map((period, index) => (
             <HolidayPeriodCard key={index} period={period} />
           ))}
