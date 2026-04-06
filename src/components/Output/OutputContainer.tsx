@@ -27,8 +27,8 @@ export const OutputContainer: React.FC = () => {
   if (status === "loading") {
     return (
       <div className="flex flex-col items-center justify-center mt-10">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-        <p className="mt-4 text-lg text-gray-700">
+        <Loader2 className="h-12 w-12 animate-spin text-theme-5" />
+        <p className="mt-4 text-lg text-foreground font-semibold">
           Calculating your optimal holidays...
         </p>
       </div>
@@ -109,22 +109,22 @@ export const OutputContainer: React.FC = () => {
       "N/A";
 
     return (
-      <div className="mt-6 space-y-6">
+      <div className="mt-2 lg:mt-6 space-y-6">
         <div className="space-y-2 px-6">
           <div className="flex items-center">
             {/* Make sparkles a bit bigger for mobile */}
             <Sparkles className="w-10 h-10 md:w-8 md:h-8 mr-2 text-theme-5" />
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+            <h1 className="text-2xl md:text-3xl font-black text-foreground">
               Your <span className="text-theme-5">Optimized</span> Holiday Plan
             </h1>
           </div>
-          <p className="text-sm md:text-md text-gray-600">
+          <p className="text-sm md:text-md text-muted-foreground font-medium">
             Your optimized holiday periods are ready. You are getting{" "}
             <span className="font-semibold text-theme-5">{overallRoi} days off</span>{" "}
             per vacation day used.
           </p>
         </div>
-        <Card className="shadow-sm border">
+        <Card className="border-[3px] border-foreground shadow-[5px_5px_0_0_rgba(0,0,0,0.7)] bg-card">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-gray-700 flex items-center">
               <ChartColumn className="w-6 h-6 mr-2 text-theme-9/70" />

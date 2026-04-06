@@ -84,12 +84,12 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
   const weekdayHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <Card className="w-full shadow-sm hover:shadow-md transition-shadow duration-200 border flex flex-col">
+    <Card className="w-full border-[3px] border-foreground shadow-[5px_5px_0_0_rgba(0,0,0,0.7)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col bg-card">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-md font-semibold text-gray-700">
-              <h3 className="text-md font-semibold text-gray-700">
+            <CardTitle className="text-md font-extrabold text-foreground">
+              <h3 className="text-md font-extrabold text-foreground">
                 {formatDateRange(period.startDate, period.endDate)}
               </h3>
             </CardTitle>

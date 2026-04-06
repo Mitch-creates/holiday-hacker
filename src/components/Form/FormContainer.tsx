@@ -13,14 +13,14 @@ export default function FormContainer({ children, title }: FormContainerProps) {
   const options = [currentYear, currentYear + 1, currentYear + 2];
   const { updateYear } = useHolidayForm();
   return (
-    <div className="border p-2.5 rounded-2xl shadow-sm bg-white space-y-2">
+    <div className="border-[3px] border-foreground p-2.5 rounded-2xl shadow-[6px_6px_0_0_rgba(0,0,0,0.8)] bg-card space-y-2">
       <div className="flex p items-center justify-between">
-        <div className="flex items-center text-3xl gap-1 font-bold text-blue-300 pl-4">
+        <div className="flex items-center text-3xl gap-1 font-black text-theme-5 pl-4">
           <Calendar className="h-6 w-auto md:h-7 lg:h-8" />
           <span className="md:text-xl text-xs lg:text-2xl">{title}</span>
         </div>
         <select
-          className="border rounded-md p-1 text-sm font-normal text-muted-foreground"
+          className="border-2 border-foreground rounded-md p-1 text-sm font-semibold text-foreground bg-background"
           onChange={(e) => {
             const selectedYear = e.target.value;
             updateYear(selectedYear);
@@ -35,7 +35,7 @@ export default function FormContainer({ children, title }: FormContainerProps) {
           })}
         </select>
       </div>
-      <div className="text-sm font-normal text-muted-foreground mb-4 pl-4">
+      <div className="text-sm font-medium text-muted-foreground mb-4 pl-4">
         Please fill out the form below to get an optimized holiday output.
       </div>
 
