@@ -3,6 +3,7 @@ import { createContext, useContext, useReducer, useCallback } from "react";
 import { CompanyHoliday } from "./FormContext";
 import { HolidaysTypes } from "date-holidays";
 import {
+  BreakKind,
   calculateOptimizedHolidayPeriods,
   StrategyType,
 } from "@/lib/holidayCalculations";
@@ -38,6 +39,8 @@ export interface HolidayPeriod {
   holidays: DayOff[];
   /** The type of strategy that generated this period. */
   type: StrategyType;
+  /** When strategy is `balanced`, inferred break style for UI labels. */
+  breakKind?: BreakKind;
   /** Number of user's own vacation days used in this period. */
   userHolidaysUsed: number;
   /** Number of public holidays falling within this period. */

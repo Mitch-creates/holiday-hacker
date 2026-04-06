@@ -22,9 +22,6 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
-    "vite.config.ts",
-    "tsconfig.app.json",
-    "tsconfig.node.json",
     "src/main.tsx"
   ]
 }

@@ -21,7 +21,7 @@ export default function CookieConsentBanner() {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 lg:left-auto lg:right-4 lg:max-w-md">
-      <div className="rounded-2xl border-[3px] border-foreground bg-card p-4 shadow-[6px_6px_0_0_rgba(0,0,0,0.8)]">
+      <div className="surface-card-elevated p-4">
         <p className="text-sm text-foreground font-semibold mb-2">Cookie notice</p>
         <p className="text-sm text-muted-foreground mb-4">
           Holiday Hacker uses essential browser storage for preferences and uses
@@ -31,14 +31,14 @@ export default function CookieConsentBanner() {
           <button
             type="button"
             onClick={() => close("accepted")}
-            className="px-3 py-2 rounded-lg border-2 border-foreground bg-theme-2 text-black text-sm font-bold active:scale-[0.98]"
+            className="px-3 py-2 rounded-lg border border-border bg-primary text-primary-foreground text-sm font-semibold active:scale-[0.99]"
           >
             Got it
           </button>
           <button
             type="button"
             onClick={() => close("dismissed")}
-            className="px-3 py-2 rounded-lg border-2 border-foreground bg-background text-foreground text-sm font-semibold active:scale-[0.98]"
+            className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm font-semibold active:scale-[0.99]"
           >
             Dismiss
           </button>

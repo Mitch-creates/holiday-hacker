@@ -5,7 +5,7 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-foreground bg-background">
+    <footer className="border-t border-border bg-background">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-8 md:flex-row md:px-6">
         <div className="text-sm text-muted-foreground">
           &copy; {currentYear} Holiday Optimizer. All rights reserved.
@@ -31,7 +31,7 @@ const Footer: React.FC = () => {
           </a>
           <a
             href="mailto:contact@holidayoptimizer.com"
-            className="flex items-center gap-2 px-4 py-2 bg-theme-4 text-white rounded-lg hover:bg-theme-4/80 transition-colors duration-300 shadow-md text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors duration-300 shadow-sm text-sm border border-border"
           >
             <Mail size={16} />
             Report Issue / Feedback

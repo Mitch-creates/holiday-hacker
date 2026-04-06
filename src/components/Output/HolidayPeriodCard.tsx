@@ -1,4 +1,25 @@
 import { HolidayPeriod, DayOff } from "@/context/FormResultsContext";
+import type { BreakKind, StrategyType } from "@/lib/holidayCalculations";
+
+const BREAK_LABELS: Record<BreakKind, string> = {
+  longWeekend: "Long weekend",
+  midWeek: "Mid-week break",
+  week: "Week-long break",
+  extended: "Extended trip",
+};
+
+const STRATEGY_LABELS: Record<StrategyType, string> = {
+  balanced: "Balanced mix",
+  longWeekend: "Long weekend",
+  midWeek: "Mid-week break",
+  week: "Week-long break",
+  extended: "Extended trip",
+};
+
+function periodBadgeLabel(period: HolidayPeriod): string {
+  if (period.breakKind) return BREAK_LABELS[period.breakKind];
+  return STRATEGY_LABELS[period.type] ?? period.type.replace(/_/g, " ");
+}
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import MiniCalendarDay from "./MiniCalendarDay";
@@ -84,7 +105,7 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
   const weekdayHeaders = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <Card className="w-full border-[3px] border-foreground shadow-[5px_5px_0_0_rgba(0,0,0,0.7)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col bg-card">
+    <Card className="surface-card-elevated w-full hover:-translate-y-0.5 transition-all duration-200 flex flex-col">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
@@ -101,12 +122,12 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
           </div>
           <Badge
             variant="outline"
-            className={`px-1.5 py-0.5 text-xs capitalize bg-theme-4/20 text-theme-4 border-theme-4/50`}
+            className="px-1.5 py-0.5 text-xs capitalize bg-primary/10 text-primary border-primary/30"
           >
-            {period.type.replace("_", " ")}
+            {periodBadgeLabel(period)}
           </Badge>
         </div>
-        <p className="text-xs font-medium text-theme-5 mt-2">
+        <p className="text-xs font-medium text-primary mt-2">
           Trade-off: {period.userHolidaysUsed} day
           {period.userHolidaysUsed === 1 ? "" : "s"} used for {period.totalDaysOff}{" "}
           days off ({periodRoi}x return)
@@ -119,7 +140,7 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
               <TooltipTrigger asChild>
                 <div className="flex flex-col items-center cursor-default">
                   <CalendarCheckIcon className="w-4 h-4 mb-0.5 text-theme-2" />
-                  <span className={`font-medium text-theme-2`}>
+                  <span className="font-medium text-theme-2">
                     {period.userHolidaysUsed}
                   </span>
                 </div>
@@ -134,7 +155,7 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
                 <TooltipTrigger asChild>
                   <div className="flex flex-col items-center cursor-default">
                     <Building2 className="w-4 h-4 mb-0.5 text-theme-8" />
-                    <span className={`font-medium text-theme-8`}>
+                    <span className="font-medium text-theme-8">
                       {period.companyHolidaysUsed}
                     </span>
                   </div>
@@ -149,7 +170,7 @@ const HolidayPeriodCard: React.FC<HolidayPeriodCardProps> = ({ period }) => {
                 <TooltipTrigger asChild>
                   <div className="flex flex-col items-center cursor-default">
                     <FlagIcon className="w-4 h-4 mb-0.5 text-theme-6" />
-                    <span className={`font-medium text-theme-6`}>
+                    <span className="font-medium text-theme-6">
                       {period.publicHolidaysUsed}
                     </span>
                   </div>

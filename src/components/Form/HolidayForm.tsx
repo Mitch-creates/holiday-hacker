@@ -14,6 +14,7 @@ import {
   CalendarRange,
   TreePalm,
   Wand,
+  Sparkles,
 } from "lucide-react";
 import CountrySelect from "./CountrySelect";
 import RegionSelect from "./RegionSelect";
@@ -37,9 +38,12 @@ const formSchema = z.object({
     .int("Please enter a whole number")
     .min(1, "That number is too low")
     .max(365, "That number is too high"),
-  strategy: z.enum(["longWeekend", "midWeek", "week", "extended"], {
-    errorMap: () => ({ message: "Please select a type of holiday" }),
-  }),
+  strategy: z.enum(
+    ["balanced", "longWeekend", "midWeek", "week", "extended"],
+    {
+      errorMap: () => ({ message: "Please select a type of holiday" }),
+    }
+  ),
   selectedCountry: z.string().nonempty("Please select a country"),
   selectedRegion: z.string().optional(),
 });
@@ -63,12 +67,13 @@ const StepNumberIcon = ({
 );
 
 const radioOptions = [
-  // {
-  //   value: "mixItUp",
-  //   label: "Mix it up",
-  //   description: "A balanced mix of all types of holidays",
-  //   icon: GanttChart,
-  // },
+  {
+    value: "balanced",
+    label: "Balanced mix",
+    description:
+      "A smart blend of long weekends and longer trips across the year (recommended)",
+    icon: Sparkles,
+  },
   {
     value: "longWeekend",
     label: "Long Weekends",
@@ -114,8 +119,8 @@ export function HolidayForm() {
   const form = useForm<HolidayFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      userHolidays: 0,
-      strategy: "longWeekend",
+      userHolidays: 20,
+      strategy: "balanced",
       selectedCountry: "",
       selectedRegion: "",
     },
@@ -129,7 +134,7 @@ export function HolidayForm() {
     setAwaitingScroll(true); // Indicate that a scroll will be needed after generation
 
     const formSnapshot = {
-      userHolidays: state.userHolidays,
+      userHolidays: String(data.userHolidays),
       year: state.year,
       strategy: data.strategy as StrategyType,
       selectedCountry: state.selectedCountry,
@@ -202,8 +207,18 @@ export function HolidayForm() {
         form.setValue("userHolidays", Number(prefs.userHolidays));
       }
       if (prefs.strategy) {
-        updateStrategy(prefs.strategy);
-        form.setValue("strategy", prefs.strategy);
+        const allowed: StrategyType[] = [
+          "balanced",
+          "longWeekend",
+          "midWeek",
+          "week",
+          "extended",
+        ];
+        const s = allowed.includes(prefs.strategy as StrategyType)
+          ? prefs.strategy
+          : "balanced";
+        updateStrategy(s);
+        form.setValue("strategy", s);
       }
       if (prefs.selectedCountry) {
         updateSelectedCountry(prefs.selectedCountry);
@@ -262,6 +277,21 @@ export function HolidayForm() {
             tooltip="Include only official holidays, not sick days or unpaid leave."
             themeColor2="theme-2"
           >
+            <div className="flex flex-wrap gap-2 mb-3">
+              {[15, 20, 25].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => {
+                    form.setValue("userHolidays", n);
+                    updateUserHolidays(String(n));
+                  }}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-background text-foreground hover:bg-muted transition"
+                >
+                  {n} days
+                </button>
+              ))}
+            </div>
             <InputNumberFormField
               control={form.control}
               formFieldName="userHolidays"
@@ -282,50 +312,6 @@ export function HolidayForm() {
             tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
             themeColor2="theme-4"
           >
-            <div className="flex flex-wrap gap-2 mb-3">
-              <button
-                type="button"
-                onClick={() => {
-                  form.setValue("strategy", "longWeekend");
-                  updateStrategy("longWeekend");
-                  trackEvent("recommendation_applied", {
-                    preset: "long_weekends",
-                    strategy: "longWeekend",
-                  });
-                }}
-                className="px-2.5 py-1.5 text-xs font-bold rounded-lg border-2 border-foreground bg-theme-2/20 text-foreground"
-              >
-                Quick wins
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  form.setValue("strategy", "week");
-                  updateStrategy("week");
-                  trackEvent("recommendation_applied", {
-                    preset: "balanced",
-                    strategy: "week",
-                  });
-                }}
-                className="px-2.5 py-1.5 text-xs font-bold rounded-lg border-2 border-foreground bg-theme-5/20 text-foreground"
-              >
-                Balanced plan
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  form.setValue("strategy", "extended");
-                  updateStrategy("extended");
-                  trackEvent("recommendation_applied", {
-                    preset: "max_consecutive",
-                    strategy: "extended",
-                  });
-                }}
-                className="px-2.5 py-1.5 text-xs font-bold rounded-lg border-2 border-foreground bg-theme-7/20 text-foreground"
-              >
-                Max consecutive
-              </button>
-            </div>
             <RadioGroupFormField
               control={form.control}
               formFieldName="strategy"
@@ -376,7 +362,7 @@ export function HolidayForm() {
           <div className="flex justify-center">
             <Button
               type="submit"
-              className="w-full max-w-[300px] bg-theme-5 text-white cursor-pointer hover:bg-theme-5/90 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full max-w-[300px] bg-primary text-primary-foreground cursor-pointer hover:opacity-95 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
             >
               <span
                 className={`flex items-center gap-2 ${
@@ -384,7 +370,7 @@ export function HolidayForm() {
                 }`}
               >
                 <Wand
-                  className={`w-5 h-5 text-white ${
+                  className={`w-5 h-5 ${
                     isGenerating ? "wand-casting" : ""
                   }`}
                 />

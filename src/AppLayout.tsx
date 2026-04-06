@@ -24,7 +24,7 @@ export default function AppLayout() {
         <Header />
         {/* Title and Subtitle Section */}
         <div className="text-center px-4 py-8 bg-background">
-          <h1 className="text-1xl font-black tracking-tight text-foreground sm:text-2xl md:text-3xl lg:text-4xl">
+          <h1 className="text-1xl font-extrabold tracking-tight text-foreground sm:text-2xl md:text-3xl lg:text-4xl">
             Holiday Optimizer
           </h1>
           <p className="mt-3 text-base text-muted-foreground sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl">
@@ -34,14 +34,14 @@ export default function AppLayout() {
         </div>
         {showOutputArea && (
           <div className="px-4 pb-2 lg:hidden">
-            <div className="grid grid-cols-2 rounded-xl border-[3px] border-foreground bg-card p-1">
+            <div className="segmented-control grid grid-cols-2">
               <button
                 type="button"
                 onClick={() => setMobileView("planner")}
-                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition active:scale-[0.98] ${
+                className={`segmented-control-button flex items-center justify-center gap-2 active:scale-[0.99] ${
                   mobileView === "planner"
-                    ? "bg-theme-2 text-black border-2 border-black"
-                    : "text-foreground"
+                    ? "segmented-control-button-active"
+                    : ""
                 }`}
               >
                 <SlidersHorizontal className="h-4 w-4" />
@@ -50,10 +50,10 @@ export default function AppLayout() {
               <button
                 type="button"
                 onClick={() => setMobileView("results")}
-                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition active:scale-[0.98] ${
+                className={`segmented-control-button flex items-center justify-center gap-2 active:scale-[0.99] ${
                   mobileView === "results"
-                    ? "bg-theme-5 text-white border-2 border-black"
-                    : "text-foreground"
+                    ? "segmented-control-button-active"
+                    : ""
                 }`}
               >
                 <MapPinned className="h-4 w-4" />
@@ -87,7 +87,7 @@ export default function AppLayout() {
             <section
               aria-label="Optimized Holiday Results"
               id="output-container-wrapper"
-              className={`w-full lg:flex-1 border-[3px] border-foreground p-4 rounded-2xl shadow-[6px_6px_0_0_rgba(0,0,0,0.8)] mb-6 bg-card space-y-2 ${
+              className={`w-full lg:flex-1 surface-card-elevated p-4 mb-6 space-y-2 ${
                 mobileView !== "results" ? "hidden lg:block" : "block"
               }`}
             >
@@ -108,7 +108,7 @@ export default function AppLayout() {
                   });
                 });
               }}
-              className="w-full rounded-xl border-[3px] border-foreground bg-theme-2 text-black font-bold py-3 shadow-[5px_5px_0_0_rgba(0,0,0,0.8)] active:translate-y-0.5 active:shadow-[2px_2px_0_0_rgba(0,0,0,0.8)] transition"
+              className="w-full rounded-xl border border-border bg-primary text-primary-foreground font-semibold py-3 shadow-sm active:scale-[0.99] transition"
             >
               Adjust Plan
             </button>

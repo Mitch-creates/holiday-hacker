@@ -205,7 +205,7 @@ export const OutputContainer: React.FC = () => {
   if (status === "loading") {
     return (
       <div className="flex flex-col items-center justify-center mt-10">
-        <Loader2 className="h-12 w-12 animate-spin text-theme-5" />
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="mt-4 text-lg text-foreground font-semibold">
           Calculating your optimal holidays...
         </p>
@@ -291,22 +291,22 @@ export const OutputContainer: React.FC = () => {
         <div className="space-y-2 px-6">
           <div className="flex items-center">
             {/* Make sparkles a bit bigger for mobile */}
-            <Sparkles className="w-10 h-10 md:w-8 md:h-8 mr-2 text-theme-5" />
-            <h1 className="text-2xl md:text-3xl font-black text-foreground">
-              Your <span className="text-theme-5">Optimized</span> Holiday Plan
+            <Sparkles className="w-10 h-10 md:w-8 md:h-8 mr-2 text-primary" />
+            <h1 className="text-2xl md:text-3xl font-extrabold text-foreground">
+              Your <span className="text-primary">Optimized</span> Holiday Plan
             </h1>
           </div>
           <p className="text-sm md:text-md text-muted-foreground font-medium">
             Your optimized holiday periods are ready. You are getting{" "}
-            <span className="font-semibold text-theme-5">{overallRoi} days off</span>{" "}
+            <span className="font-semibold text-primary">{overallRoi} days off</span>{" "}
             per vacation day used.
           </p>
         </div>
-        <Card className="border-[3px] border-foreground shadow-[5px_5px_0_0_rgba(0,0,0,0.7)] bg-card">
+        <Card className="surface-card-elevated">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-foreground flex items-center">
-              <ChartColumn className="w-6 h-6 mr-2 text-theme-9/70" />
-              <h2 className="text-theme-9/70 text-xl font-bold">
+              <ChartColumn className="w-6 h-6 mr-2 text-primary/80" />
+              <h2 className="text-primary/80 text-xl font-bold">
                 Optimization Statistics
               </h2>
             </CardTitle>
@@ -365,7 +365,7 @@ export const OutputContainer: React.FC = () => {
           </CardContent>
         </Card>
         {scenarioCompare.length > 0 && (
-          <div className="rounded-2xl border-[3px] border-foreground bg-card p-3">
+          <div className="surface-card p-3">
             <p className="text-sm font-bold text-foreground mb-2">
               Compare recommended scenarios
             </p>
@@ -385,9 +385,9 @@ export const OutputContainer: React.FC = () => {
                       sort_by: scenario.key,
                     });
                   }}
-                  className="text-left border-2 border-foreground rounded-xl p-3 bg-background hover:bg-muted/40 transition"
+                  className="text-left border border-border rounded-xl p-3 bg-background hover:bg-muted/40 transition"
                 >
-                  <p className="text-xs font-bold text-theme-5">{scenario.label}</p>
+                  <p className="text-xs font-bold text-primary">{scenario.label}</p>
                   <p className="text-sm font-semibold text-foreground mt-1">
                     {scenario.period.totalDaysOff} days off / {scenario.period.userHolidaysUsed} used
                   </p>
@@ -399,8 +399,8 @@ export const OutputContainer: React.FC = () => {
                       <span
                         className={`text-[11px] px-1.5 py-0.5 rounded-md border ${
                           scenario.deltaDaysOff >= 0
-                            ? "bg-theme-2/20 border-theme-2 text-foreground"
-                            : "bg-theme-4/20 border-theme-4 text-foreground"
+                            ? "bg-emerald-500/10 border-emerald-500/40 text-foreground"
+                            : "bg-rose-500/10 border-rose-500/40 text-foreground"
                         }`}
                       >
                         {scenario.deltaDaysOff >= 0 ? "+" : ""}
@@ -409,8 +409,8 @@ export const OutputContainer: React.FC = () => {
                       <span
                         className={`text-[11px] px-1.5 py-0.5 rounded-md border ${
                           scenario.deltaDaysUsed <= 0
-                            ? "bg-theme-2/20 border-theme-2 text-foreground"
-                            : "bg-theme-6/20 border-theme-6 text-foreground"
+                            ? "bg-emerald-500/10 border-emerald-500/40 text-foreground"
+                            : "bg-amber-500/10 border-amber-500/40 text-foreground"
                         }`}
                       >
                         {scenario.deltaDaysUsed >= 0 ? "+" : ""}
@@ -419,8 +419,8 @@ export const OutputContainer: React.FC = () => {
                       <span
                         className={`text-[11px] px-1.5 py-0.5 rounded-md border ${
                           scenario.deltaRoi >= 0
-                            ? "bg-theme-5/20 border-theme-5 text-foreground"
-                            : "bg-theme-11/30 border-theme-11 text-foreground"
+                            ? "bg-primary/10 border-primary/40 text-foreground"
+                            : "bg-muted border-border text-foreground"
                         }`}
                       >
                         {scenario.deltaRoi >= 0 ? "+" : ""}
@@ -434,17 +434,17 @@ export const OutputContainer: React.FC = () => {
           </div>
         )}
         <div className="flex items-center justify-between gap-2">
-          <div className="grid grid-cols-2 rounded-xl border-[3px] border-foreground bg-card p-1 w-fit">
+          <div className="segmented-control grid grid-cols-2 w-fit">
             <button
               type="button"
               onClick={() => {
                 setViewMode("list");
                 trackEvent("results_view_changed", { view: "list" });
               }}
-              className={`px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg border-2 ${
+              className={`segmented-control-button px-3 py-1.5 text-xs md:text-sm ${
                 viewMode === "list"
-                  ? "bg-theme-2 border-foreground text-black"
-                  : "border-transparent text-foreground"
+                  ? "segmented-control-button-active"
+                  : ""
               }`}
             >
               List view
@@ -455,16 +455,16 @@ export const OutputContainer: React.FC = () => {
                 setViewMode("calendar");
                 trackEvent("results_view_changed", { view: "calendar" });
               }}
-              className={`px-3 py-1.5 text-xs md:text-sm font-semibold rounded-lg border-2 ${
+              className={`segmented-control-button px-3 py-1.5 text-xs md:text-sm ${
                 viewMode === "calendar"
-                  ? "bg-theme-5 border-foreground text-white"
-                  : "border-transparent text-foreground"
+                  ? "segmented-control-button-active"
+                  : ""
               }`}
             >
               Calendar view
             </button>
           </div>
-          <p className="text-xs font-semibold text-theme-5">
+          <p className="text-xs font-semibold text-primary">
             {sortedPeriods.length} shown
           </p>
         </div>
@@ -484,7 +484,7 @@ export const OutputContainer: React.FC = () => {
                 trackEvent("pto_scenario_compared", { sort_by: value });
               }
             }
-            className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
+            className="text-xs md:text-sm border border-border bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
           >
             <option value="roi-desc">Sort: Best ROI first</option>
             <option value="total-desc">Sort: Most days off</option>
@@ -500,7 +500,7 @@ export const OutputContainer: React.FC = () => {
                 desired_month: e.target.value === "" ? "none" : e.target.value,
               });
             }}
-            className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
+            className="text-xs md:text-sm border border-border bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
           >
             <option value="">Desired month (optional)</option>
             {Array.from({ length: 12 }, (_, idx) => (
@@ -515,7 +515,7 @@ export const OutputContainer: React.FC = () => {
               setMinRoiFilter(e.target.value as "0" | "1.5" | "2" | "3");
               trackEvent("results_filter_changed", { min_roi: e.target.value });
             }}
-            className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
+            className="text-xs md:text-sm border border-border bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
           >
             <option value="0">Filter: Any ROI</option>
             <option value="1.5">Filter: ROI 1.5x+</option>
@@ -534,7 +534,7 @@ export const OutputContainer: React.FC = () => {
                 });
               }
             }
-            className="text-xs md:text-sm border-2 border-foreground bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
+            className="text-xs md:text-sm border border-border bg-background text-foreground rounded-lg px-2 py-1.5 font-semibold"
           >
             <option value="all">Filter: Any days used</option>
             <option value="1">Filter: Max 1 day used</option>
@@ -547,7 +547,7 @@ export const OutputContainer: React.FC = () => {
           <button
             type="button"
             onClick={exportAsIcs}
-            className="px-3 py-2 text-xs md:text-sm font-bold border-[3px] border-foreground rounded-lg bg-theme-2 text-black active:scale-[0.98]"
+            className="px-3 py-2 text-xs md:text-sm font-semibold border border-border rounded-lg bg-primary text-primary-foreground hover:opacity-95 active:scale-[0.99]"
           >
             Export to calendar (.ics)
           </button>
@@ -563,12 +563,12 @@ export const OutputContainer: React.FC = () => {
               <p className="text-xs font-semibold text-muted-foreground">
                 Swipe to browse trip options
               </p>
-              <p className="text-xs font-semibold text-theme-5">
+              <p className="text-xs font-semibold text-primary">
                 {sortedPeriods.length} options
               </p>
             </div>
             {sortedPeriods.length === 0 ? (
-              <div className="rounded-2xl border-2 border-foreground bg-muted/30 p-4">
+              <div className="rounded-2xl border border-border bg-muted/30 p-4">
                 <p className="text-sm font-semibold text-foreground">
                   No periods match your filters.
                 </p>
@@ -580,7 +580,7 @@ export const OutputContainer: React.FC = () => {
                     setDesiredMonth("");
                     setSortBy("roi-desc");
                   }}
-                  className="mt-2 px-3 py-1.5 text-xs font-semibold border-2 border-foreground rounded-lg bg-background"
+                  className="mt-2 px-3 py-1.5 text-xs font-semibold border border-border rounded-lg bg-background"
                 >
                   Clear filters
                 </button>
@@ -618,7 +618,7 @@ export const OutputContainer: React.FC = () => {
                       key={`dot-${index}`}
                       className={`h-2 rounded-full transition-all ${
                         activeMobileCardIndex === index
-                          ? "w-5 bg-theme-5"
+                          ? "w-5 bg-primary"
                           : "w-2 bg-muted-foreground/40"
                       }`}
                     />

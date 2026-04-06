@@ -38,10 +38,10 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
   }, [isCopied]);
 
   return (
-    <Card className="mt-8 border-[3px] border-foreground shadow-[5px_5px_0_0_rgba(0,0,0,0.7)]">
+    <Card className="mt-8 surface-card-elevated">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-foreground flex items-center">
-          <Share2 className="w-5 h-5 mr-2 text-theme-9/70" />
+          <Share2 className="w-5 h-5 mr-2 text-primary/80" />
           Found this tool helpful?
         </CardTitle>
       </CardHeader>
@@ -80,7 +80,7 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackEvent("plan_shared", { share_channel: "facebook" })}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-theme-7 hover:bg-theme-7/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors"
             aria-label="Share on Facebook"
           >
             <svg
@@ -119,7 +119,7 @@ export const ShareSection: React.FC<ShareSectionProps> = () => {
           </a>
           <button
             onClick={handleCopyLink}
-            className="inline-flex items-center px-4 py-2 border-2 border-foreground text-sm font-medium rounded-md shadow-sm text-foreground bg-background hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors cursor-pointer min-w-[130px] justify-center"
+            className="inline-flex items-center px-4 py-2 border border-border text-sm font-medium rounded-md shadow-sm text-foreground bg-background hover:bg-muted focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring transition-colors cursor-pointer min-w-[130px] justify-center"
             aria-label="Copy link to clipboard"
             disabled={isCopied}
           >

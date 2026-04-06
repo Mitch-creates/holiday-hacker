@@ -41,23 +41,23 @@ export default function OutputCalendarView({
   };
 
   return (
-    <div className="rounded-2xl border-[3px] border-foreground bg-card p-4 shadow-[5px_5px_0_0_rgba(0,0,0,0.7)]">
+    <div className="surface-card-elevated p-4">
       <div className="flex items-center justify-between mb-3">
         <button
           type="button"
           onClick={previousMonth}
-          className="border-2 border-foreground rounded-lg p-1 bg-background active:scale-[0.98]"
+          className="border border-border rounded-lg p-1 bg-background active:scale-[0.99]"
           aria-label="Previous month"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <p className="font-bold text-theme-5">
+        <p className="font-bold text-primary">
           {month.toLocaleString("default", { month: "long", year: "numeric" })}
         </p>
         <button
           type="button"
           onClick={nextMonth}
-          className="border-2 border-foreground rounded-lg p-1 bg-background active:scale-[0.98]"
+          className="border border-border rounded-lg p-1 bg-background active:scale-[0.99]"
           aria-label="Next month"
         >
           <ChevronRight className="w-4 h-4" />
@@ -77,11 +77,11 @@ export default function OutputCalendarView({
           caption: "hidden",
           head_cell: "text-muted-foreground font-semibold text-xs",
           day: "h-9 w-9 rounded-md text-sm",
-          day_today: "border-2 border-theme-5",
+          day_today: "border border-primary",
           day_outside: "text-muted-foreground/40",
         }}
         modifiersClassNames={{
-          suggestedRange: "bg-theme-5/30 text-foreground font-semibold",
+          suggestedRange: "bg-primary/20 text-foreground font-semibold",
         }}
       />
 
