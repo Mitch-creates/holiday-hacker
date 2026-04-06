@@ -96,11 +96,19 @@ const radioOptions = [
 ];
 
 export function HolidayForm() {
-  const { updateUserHolidays, state, updateStrategy } = useHolidayForm();
+  const {
+    updateUserHolidays,
+    state,
+    updateStrategy,
+    updateSelectedCountry,
+    updateSelectedRegion,
+    updateYear,
+  } = useHolidayForm();
   // Get state from useFormResults as well, aliasing to formResultsState to avoid naming conflict
   const { updateFormInputState, state: formResultsState } = useFormResults();
   const [isGenerating, setIsGenerating] = useState(false);
   const [awaitingScroll, setAwaitingScroll] = useState(false); // New state for scroll trigger
+  const STORAGE_KEY = "hh_form_preferences";
 
   const form = useForm<HolidayFormValues>({
     resolver: zodResolver(formSchema),
@@ -173,6 +181,66 @@ export function HolidayForm() {
     }
   }, [awaitingScroll, isGenerating, formResultsState.status]);
 
+  useEffect(() => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const prefs = JSON.parse(raw) as {
+        userHolidays?: string;
+        strategy?: StrategyType;
+        selectedCountry?: string;
+        selectedRegion?: string;
+        year?: string;
+      };
+
+      if (prefs.userHolidays) {
+        updateUserHolidays(prefs.userHolidays);
+        form.setValue("userHolidays", Number(prefs.userHolidays));
+      }
+      if (prefs.strategy) {
+        updateStrategy(prefs.strategy);
+        form.setValue("strategy", prefs.strategy);
+      }
+      if (prefs.selectedCountry) {
+        updateSelectedCountry(prefs.selectedCountry);
+        form.setValue("selectedCountry", prefs.selectedCountry);
+      }
+      if (prefs.selectedRegion) {
+        updateSelectedRegion(prefs.selectedRegion);
+        form.setValue("selectedRegion", prefs.selectedRegion);
+      }
+      if (prefs.year) {
+        updateYear(prefs.year);
+      }
+    } catch {
+      // ignore malformed local data
+    }
+  }, [
+    form,
+    updateSelectedCountry,
+    updateSelectedRegion,
+    updateStrategy,
+    updateUserHolidays,
+    updateYear,
+  ]);
+
+  useEffect(() => {
+    const prefs = {
+      userHolidays: state.userHolidays,
+      strategy: state.strategy,
+      selectedCountry: state.selectedCountry,
+      selectedRegion: state.selectedRegion,
+      year: state.year,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+  }, [
+    state.userHolidays,
+    state.strategy,
+    state.selectedCountry,
+    state.selectedRegion,
+    state.year,
+  ]);
+
   function handleUserHolidaysChange(value: string) {
     // Update the context with the new value
     updateUserHolidays(value);
@@ -212,6 +280,50 @@ export function HolidayForm() {
             tooltip="Select the type of holidays you prefer. This will help to suggest the best options for you."
             themeColor2="theme-4"
           >
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => {
+                  form.setValue("strategy", "longWeekend");
+                  updateStrategy("longWeekend");
+                  trackEvent("recommendation_applied", {
+                    preset: "long_weekends",
+                    strategy: "longWeekend",
+                  });
+                }}
+                className="px-2.5 py-1.5 text-xs font-bold rounded-lg border-2 border-foreground bg-theme-2/20 text-foreground"
+              >
+                Quick wins
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  form.setValue("strategy", "week");
+                  updateStrategy("week");
+                  trackEvent("recommendation_applied", {
+                    preset: "balanced",
+                    strategy: "week",
+                  });
+                }}
+                className="px-2.5 py-1.5 text-xs font-bold rounded-lg border-2 border-foreground bg-theme-5/20 text-foreground"
+              >
+                Balanced plan
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  form.setValue("strategy", "extended");
+                  updateStrategy("extended");
+                  trackEvent("recommendation_applied", {
+                    preset: "max_consecutive",
+                    strategy: "extended",
+                  });
+                }}
+                className="px-2.5 py-1.5 text-xs font-bold rounded-lg border-2 border-foreground bg-theme-7/20 text-foreground"
+              >
+                Max consecutive
+              </button>
+            </div>
             <RadioGroupFormField
               control={form.control}
               formFieldName="strategy"

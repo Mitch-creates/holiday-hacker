@@ -141,6 +141,46 @@ export const OutputContainer: React.FC = () => {
     return periods;
   }, [desiredMonth, sortBy, visiblePeriods]);
 
+  const scenarioCompare = useMemo(() => {
+    if (calculatedPeriods.length === 0) return [];
+    const getTop = (
+      key: "roi-desc" | "total-desc" | "used-asc" | "date-asc",
+      label: string
+    ) => {
+      const list = [...calculatedPeriods];
+      list.sort((a, b) => {
+        if (key === "total-desc") return b.totalDaysOff - a.totalDaysOff;
+        if (key === "used-asc") return a.userHolidaysUsed - b.userHolidaysUsed;
+        if (key === "date-asc") {
+          return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        }
+        const roiA = getRoi(a.userHolidaysUsed, a.totalDaysOff);
+        const roiB = getRoi(b.userHolidaysUsed, b.totalDaysOff);
+        return roiB - roiA;
+      });
+      const period = list[0];
+      return {
+        key,
+        label,
+        period,
+        roi: getRoi(period.userHolidaysUsed, period.totalDaysOff),
+      };
+    };
+
+    const candidates = [
+      getTop("roi-desc", "Best ROI"),
+      getTop("total-desc", "Longest break"),
+      getTop("used-asc", "Least PTO used"),
+    ];
+
+    const unique = new Map<string, (typeof candidates)[number]>();
+    candidates.forEach((c) => {
+      const id = `${new Date(c.period.startDate).toISOString()}-${c.period.totalDaysOff}`;
+      if (!unique.has(id)) unique.set(id, c);
+    });
+    return Array.from(unique.values()).slice(0, 3);
+  }, [calculatedPeriods]);
+
   // Initial loading state
   if (status === "loading") {
     return (
@@ -304,6 +344,38 @@ export const OutputContainer: React.FC = () => {
             />
           </CardContent>
         </Card>
+        {scenarioCompare.length > 0 && (
+          <div className="rounded-2xl border-[3px] border-foreground bg-card p-3">
+            <p className="text-sm font-bold text-foreground mb-2">
+              Compare recommended scenarios
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              {scenarioCompare.map((scenario) => (
+                <button
+                  key={scenario.label}
+                  type="button"
+                  onClick={() => {
+                    setSortBy(scenario.key);
+                    setViewMode("list");
+                    trackEvent("recommendation_applied", {
+                      scenario: scenario.label,
+                      sort_by: scenario.key,
+                    });
+                  }}
+                  className="text-left border-2 border-foreground rounded-xl p-3 bg-background hover:bg-muted/40 transition"
+                >
+                  <p className="text-xs font-bold text-theme-5">{scenario.label}</p>
+                  <p className="text-sm font-semibold text-foreground mt-1">
+                    {scenario.period.totalDaysOff} days off / {scenario.period.userHolidaysUsed} used
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    ROI {scenario.roi.toFixed(1)}x
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between gap-2">
           <div className="grid grid-cols-2 rounded-xl border-[3px] border-foreground bg-card p-1 w-fit">
             <button
